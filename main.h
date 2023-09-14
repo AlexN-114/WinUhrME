@@ -10,6 +10,7 @@
 #define DLG_MAIN_Z      1003
 #define DLG_EDIT        1004
 #define DLG_ALARM       1005
+#define DLG_EVENTLIST   1006
 
 #define IDM_MENU        2001
 
@@ -30,7 +31,32 @@
 #define IDD_30MIN       4009
 #define IDD_60MIN       4010
 
+#define IDD_ZEIT_AKT    4012
+#define IDD_EVENT_AKT   4013
+
+#define IDD_ZEIT_01     4015
+#define IDD_ZEIT_02     4017
+#define IDD_ZEIT_03     4019
+#define IDD_ZEIT_04     4021
+#define IDD_ZEIT_05     4023
+#define IDD_ZEIT_06     4025
+#define IDD_ZEIT_07     4027
+#define IDD_ZEIT_08     4029
+#define IDD_ZEIT_09     4031
+#define IDD_ZEIT_10     4033
+#define IDD_EVENT_01    4016
+#define IDD_EVENT_02    4018
+#define IDD_EVENT_03    4020
+#define IDD_EVENT_04    4022
+#define IDD_EVENT_05    4024
+#define IDD_EVENT_06    4026
+#define IDD_EVENT_07    4028
+#define IDD_EVENT_08    4030
+#define IDD_EVENT_09    4032
+#define IDD_EVENT_10    4034
+
 #define IDM_EDIT        6001
+#define IDM_LIST        6014
 #define IDM_MINI        6002
 #define IDM_RESTZEIT    6003
 #define IDM_EXIT        6004

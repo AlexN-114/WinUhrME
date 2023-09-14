@@ -51,7 +51,7 @@
 // 2.0.0.45 Refresh ohne RDW_ERASE und wieder zurück            aN 21.08.2023
 // 2.0.0.46 Systemicon setzen mit WM_SETICON (64Bit-tauglich)   aN 05.09.2023
 // 2.0.0.47 Vorläufige Endversion                               aN 11.09.2023
-
+// 2.9.0.48 WinUhrME, der Anfang                                aN 14.09.2023
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
  * NOSERVICE, NOMCX and NOIME, to decrease compile time (if you
@@ -93,6 +93,7 @@
 static LRESULT CALLBACK DlgProcMain(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcEdit(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcAlarm(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcList(HWND, UINT, WPARAM, LPARAM);
 void AktOutput(HWND hwndDlg);
 void SetColors(HWND hwndCtl, HDC wParam);
 HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc);
@@ -109,6 +110,14 @@ typedef struct
     int top;
     RECT rWndDlg;
 } uhr;
+
+typedef struct
+{
+    UINT8 std;
+    UINT8 min;
+    UINT8 sec;
+    char grund[100];
+} ereignis;
 /** Global variables ********************************************************/
 
 static HANDLE ghInstance;
@@ -116,13 +125,11 @@ static COLORREF gBackgroundColor;
 static COLORREF gForegroundColor;
 static HICON hBackIcon;
 static HICON hBigIcon;
-//static HWND hMainWnd = 0;
-//static int minimized = 0;
 static int show_rest = 1;
 static int blackwhite = 0;
-static char IniName[300] = "WinUhr2.ini";
+static char IniName[300] = "WinUhrME.ini";
+static ereignis ereignisse[10];
 
-//static HMENU hSysMenu = NULL;
 static HMENU hPopupMenu = NULL;
 static NOTIFYICONDATA nid = {0};
 static HICON hIcon;
@@ -226,6 +233,22 @@ void GetParams(char *szCmdline)
         }
         i++;
     }
+}
+
+// zur Endzeit EZ 'diff'-Minuten addieren
+void AddTime(int diff)
+{
+    EZ.wMinute += (short)diff;
+    if (EZ.wMinute >= 60)
+    {
+        EZ.wHour += EZ.wMinute/60;
+        EZ.wMinute %= 60;
+        if (EZ.wHour >= 24)
+        {
+            EZ.wHour %= 24;
+        }
+    }
+    erreicht = 0;
 }
 
 //****************************************************************************
@@ -827,12 +850,14 @@ void SaveRect(void)
     f = fopen(IniName, "w");
     if (f != NULL)
     {
+        // Alarm speichern
         sprintf(hStr, "%02d:%02d:%02d\n", EZ.wHour, EZ.wMinute, EZ.wSecond);
         fwrite(hStr, 1, strlen(hStr), f);
 
         sprintf(hStr, "%s\n", alarmgrund);
         fwrite(hStr, 1, strlen(hStr), f);
 
+        // Positionen speichern
         sprintf(hStr, "%ld,%ld,%ld,%ld\n",
         uhren[0].rWndDlg.left, uhren[0].rWndDlg.top,
         uhren[0].rWndDlg.right, uhren[0].rWndDlg.bottom);
@@ -846,6 +871,12 @@ void SaveRect(void)
         uhren[2].rWndDlg.right, uhren[2].rWndDlg.bottom);
         fwrite(hStr, 1, strlen(hStr), f);
 
+        // Liste speichern
+        for (int i=0; i<10; i++)
+        {
+            ereignis *e = &ereignisse[i];
+            fprintf(f, "%02d:%02d:%02d, %s\n",e->std,e->min,e->sec,e->grund);
+        }
         fclose(f);
     }
 }
@@ -974,6 +1005,16 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
             }
         }
 
+        for (int i = 0; i < 10; i++)
+        {
+            int h,m,s;
+            ereignis *e = &ereignisse[i];
+            fscanf(f,"%d:%d:%d,%s\n",&h,&m,&s,e->grund);
+            e->std = (char)h;
+            e->min = (char)m;
+            e->sec = (char)s;
+        }
+
         // Datei schließen
         fclose(f);
     }
@@ -1082,16 +1123,16 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             {
                 hPopupMenu = CreatePopupMenu();
                 AppendMenu(hPopupMenu, MF_STRING, IDM_EDIT, "&Eingabe Endzeit");
-                AppendMenu(hPopupMenu, MF_STRING | MF_CHECKED, IDM_RESTZEIT, "&Restzeit bei Minimiert");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_LIST, "&Bearbeite Liste");
+                //AppendMenu(hPopupMenu, MF_STRING | MF_CHECKED, IDM_RESTZEIT, "&Restzeit bei Minimiert");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
-                //AppendMenu(hPopupMenu, MF_STRING            ,IDM_MINI       , "&Minimieren");
-                AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEX, "&Verstecken X");
-                AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEY, "&Verstecken Y");
-                AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEZ, "&Verstecken Z");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEX, "&Verstecken B");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEY, "&Verstecken D");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEZ, "&Verstecken A");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
-                AppendMenu(hPopupMenu, MF_STRING, IDM_TOPX, "&TopMost X");
-                AppendMenu(hPopupMenu, MF_STRING, IDM_TOPY, "&TopMost Y");
-                AppendMenu(hPopupMenu, MF_STRING, IDM_TOPZ, "&TopMost Z");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_TOPX, "&TopMost B");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_TOPY, "&TopMost D");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_TOPZ, "&TopMost A");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
                 AppendMenu(hPopupMenu, MF_STRING, IDM_RESTORE, "&Wiederherstellen");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
@@ -1105,8 +1146,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             }
             uhren[selUhr].hSMenu = GetSystemMenu(hwndDlg, FALSE);
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
-            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_EDIT, "&Eingabe Endzeit");
-            //AppendMenu(uhren[selUhr].hSMenu, MF_STRING | MF_CHECKED, IDM_RESTZEIT, "&Restzeit bei Minimiert");
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_EDIT, "Eingabe &Endzeit");
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_LIST, "Bearbeite &Liste");
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_TOP, "&TopMost");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_HIDE, "&Verstecken");
@@ -1119,7 +1160,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             {
                 nid.cbSize = sizeof(NOTIFYICONDATA);  //Most API Structs require this
                 nid.hWnd = hwndDlg;
-                nid.uID = IDR_ICO_MAIN;
+                nid.uID = IDR_ICO_TRAY3;
                 nid.uFlags = NIF_ICON + NIF_MESSAGE + NIF_TIP;  //Flags to set requires fields
                 nid.uCallbackMessage = WM_SHELLNOTIFY;  // Message ID sent when the pointer enters Tray icon area
                 nid.hIcon = LoadIcon(ghInstance, MAKEINTRESOURCE(IDR_ICO_MAIN));  //Load Icon for tray
@@ -1169,7 +1210,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     break;
 
                 case IDM_RESTZEIT:
-                // hSysMenu = GetSystemMenu(hwndDlg, FALSE);
                     show_rest = !show_rest;
                     if (show_rest)
                     {
@@ -1184,8 +1224,12 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     return TRUE;
 
                 case IDM_EDIT:
-                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)
-                    DlgProcEdit);
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
+                    SaveRect();
+                    return TRUE;
+
+                case IDM_LIST:
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
                     SaveRect();
                     return TRUE;
 
@@ -1278,6 +1322,11 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
+                    return TRUE;
+
+                case IDM_LIST:
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
+                    SaveRect();
                     return TRUE;
 
                 case IDM_HIDE:
@@ -1525,22 +1574,6 @@ static LRESULT CALLBACK DlgProcEdit(HWND hwndEDlg, UINT uMsg, WPARAM wParam, LPA
     return FALSE;
 }
 
-// zur Endzeit EZ 'diff'-Minuten addieren
-void AddTime(int diff)
-{
-    EZ.wMinute += (short)diff;
-    if (EZ.wMinute >= 60)
-    {
-        EZ.wHour += EZ.wMinute/60;
-        EZ.wMinute %= 60;
-        if (EZ.wHour >= 24)
-        {
-            EZ.wHour %= 24;
-        }
-    }
-    erreicht = 0;
-}
-
 static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char hStr[120];
@@ -1590,6 +1623,93 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
             AlarmDlg = 0;
             EndDialog(hwndADlg, 0);
             return TRUE;
+    }
+
+    return FALSE;
+}
+
+static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    char hStr[100];
+    int items;
+    int h,m,s;
+
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+            sprintf(hStr, "%02d:%02d:%02d", EZ.wHour, EZ.wMinute, EZ.wSecond);
+            SetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr);
+            SetDlgItemText(hwndDlg, IDD_EVENT_AKT, alarmgrund);
+            for (int i=0; i<10; i++)
+            {
+                ereignis e = ereignisse[i];
+                SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
+                sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
+                SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
+            }
+            return TRUE;
+
+        case WM_COMMAND:
+            switch (GET_WM_COMMAND_ID(wParam, lParam))
+            {
+                case IDOK:
+                    // Alarm lesen
+                    GetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr, 99);
+                    items=sscanf(hStr, "%u:%u:%u", &h, &m, &s);
+                    // eine Einfache Syntaxprüfung der Eingabe  ** aN 09.08.2023
+                    switch(items)
+                    {
+                        case 3:
+                            EZ.wHour   = h % 24;
+                            EZ.wMinute = m % 60;
+                            EZ.wSecond = s % 60;
+                            erreicht = 0;
+                            break;
+                        case 2:
+                            EZ.wHour   = h % 24;
+                            EZ.wMinute = m % 60;
+                            EZ.wSecond = 0;
+                            erreicht = 0;
+                            break;
+                        case 1:
+                            GetLocalTime(&EZ);
+                            EZ.wSecond = 0;
+                            AddTime(h);
+                            erreicht = 0;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    GetDlgItemText(hwndDlg, IDD_EVENT_AKT, alarmgrund, 100);
+
+                    // Liste lesen
+                    for (int i=0; i<10; i++)
+                    {
+                        ereignis *e = &ereignisse[i];
+
+                        GetDlgItemText(hwndDlg,IDD_ZEIT_01+i*2,hStr,100);
+                        sscanf(hStr,"%u:%u:%u",&h,&m,&s);
+                        e->std = (char)h;
+                        e->min = (char)m;
+                        e->sec = (char)s;
+                        GetDlgItemText(hwndDlg,IDD_EVENT_01+i*2,e->grund,100);
+                    }
+                    // und speichern
+                    SaveRect();
+                    EndDialog(hwndDlg, TRUE);
+                    return TRUE;
+
+                case IDCANCEL:
+                    EndDialog(hwndDlg, FALSE);
+                    return TRUE;
+            }
+            break;
+
+        case WM_CLOSE:
+            EndDialog(hwndDlg, 0);
+            return TRUE;
+
     }
 
     return FALSE;
