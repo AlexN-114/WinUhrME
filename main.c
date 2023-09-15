@@ -52,6 +52,8 @@
 // 2.0.0.46 Systemicon setzen mit WM_SETICON (64Bit-tauglich)   aN 05.09.2023
 // 2.0.0.47 Vorläufige Endversion                               aN 11.09.2023
 // 2.9.0.48 WinUhrME, der Anfang                                aN 14.09.2023
+// 2.9.0.49 Sound-Effekt ergänzt                                aN 15.09.2023
+
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
  * NOSERVICE, NOMCX and NOIME, to decrease compile time (if you
@@ -137,6 +139,7 @@ static HICON hBIcon;
 
 int AlarmDlg = 0;  // Flag ob der Alarmdialog eingeschaltet ist
 int erreicht = 0;  // Flag für Zeit erreicht
+int sound_off = 0; // Sound on/off
 
 SYSTEMTIME DZ = {2012, 0, 0,12,0,0,0,0};
 SYSTEMTIME EZ = {2012, 3,14,17,0,0,0,0};
@@ -147,6 +150,45 @@ char *wota[] = {"So\0nntag","Mo\0ntag","Di\0enstag","Mi\0ttwoch","Do\0nnerstag",
 uhr uhren[3] = {{NULL,NULL,0,0,{0,0,0,0}},
                 {NULL,NULL,0,0,{0,0,0,0}},
                 {NULL,NULL,0,0,{0,0,0,0}}};
+
+//! Sound-Ausgabe
+BOOL PlayResource(LPSTR lpName)
+{
+    BOOL bRtn;
+    LPSTR lpRes;
+    HANDLE hResInfo, hRes;
+
+    if (sound_off == 0)
+    {
+        // Find the WAVE resource.
+        hResInfo = FindResource(GetModuleHandle(NULL), lpName, RT_RCDATA);
+        if (hResInfo == NULL)
+            return FALSE;
+
+        // Load the WAVE resource.
+
+        hRes = LoadResource(GetModuleHandle(NULL), hResInfo);
+        if (hRes == NULL)
+            return FALSE;
+
+        // Lock the WAVE resource and play it.
+        lpRes = LockResource(hRes);
+        if (lpRes != NULL)
+        {
+            bRtn = sndPlaySound(lpRes, SND_MEMORY | SND_ASYNC);
+        }
+        else
+        bRtn = 0;
+
+        // Free the WAVE resource and return success or failure.
+
+        FreeResource(hRes);
+    }
+    else
+    bRtn = 0;
+
+    return bRtn;
+}
 
 //****************************************************************************
 //  Get Parameter
@@ -875,7 +917,7 @@ void SaveRect(void)
         for (int i=0; i<10; i++)
         {
             ereignis *e = &ereignisse[i];
-            fprintf(f, "%02d:%02d:%02d, %s\n",e->std,e->min,e->sec,e->grund);
+            fprintf(f, "%02d:%02d:%02d,%s\n",e->std,e->min,e->sec,e->grund);
         }
         fclose(f);
     }
@@ -995,12 +1037,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
             fgets(hStr, 50, f);
             if (4 == sscanf(hStr, "%ld,%ld,%ld,%ld", &r.left, &r.top, &r.right, &r.bottom))
             {
-                // RECT hr;
-
-                // GetWindowRect(hWndDlg[i], &hr);
-                // hr.right  -= hr.left;
-                // hr.bottom -= hr.top;
-                // MoveWindow(hWndDlg[i], r.left, r.top, hr.right, hr.bottom, TRUE);
                 uhren[i].rWndDlg = r;
             }
         }
@@ -1008,8 +1044,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         for (int i = 0; i < 10; i++)
         {
             int h,m,s;
+            int x;
             ereignis *e = &ereignisse[i];
-            fscanf(f,"%d:%d:%d,%s\n",&h,&m,&s,e->grund);
+            x = fscanf(f,"%d:%d:%d,",&h,&m,&s);
+            fgets(e->grund,100,f);
             e->std = (char)h;
             e->min = (char)m;
             e->sec = (char)s;
@@ -1114,7 +1152,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     switch (uMsg)
     {
         case WM_INITDIALOG:
-            // Timer starten    
+            // Timer starten
             SetTimer(hwndDlg, TIMER_UHR , 250, NULL);
             SetTimer(hwndDlg, TIMER_UHRA, 500, NULL);
 
@@ -1549,8 +1587,6 @@ static LRESULT CALLBACK DlgProcEdit(HWND hwndEDlg, UINT uMsg, WPARAM wParam, LPA
                             break;
                     }
 
-                    
-
                     GetDlgItemText(hwndEDlg, IDD_EDIT_GRUND, alarmgrund, 99);
 
                     EndDialog(hwndEDlg, TRUE);
@@ -1585,6 +1621,7 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
             erreicht = 1;
             sprintf(hStr, "%02d:%02d:%02d   %s", EZ.wHour, EZ.wMinute, EZ.wSecond, alarmgrund);
             SetDlgItemText(hwndADlg, IDD_ALARM_TEXT, hStr);
+            PlayResource(MAKEINTRESOURCE(IDR_SND_FANFARE));
             return TRUE;
 
         case WM_COMMAND:

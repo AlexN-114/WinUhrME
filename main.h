@@ -20,6 +20,8 @@
 #define IDR_ICO_TRAY3   10004
 #define IDR_ICO_TRAY4   10005
 
+#define IDR_SND_FANFARE 11001
+
 #define IDD_UHRZEIT     4001
 #define IDD_RESTZEIT    4002
 #define IDD_ENDZEIT     4003
