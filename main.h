@@ -33,6 +33,9 @@
 #define IDD_30MIN       4009
 #define IDD_60MIN       4010
 
+#define IDD_WEITER      4011
+#define IDD_STOPP       4014
+
 #define IDD_ZEIT_AKT    4012
 #define IDD_EVENT_AKT   4013
 
@@ -71,6 +74,8 @@
 #define IDM_TOPX        6011
 #define IDM_TOPY        6012
 #define IDM_TOPZ        6013
+#define IDM_NEXT        6015
+#define IDM_NOSOUND     6016
 
 #define IDD_ALARM_TEXT  7001
 

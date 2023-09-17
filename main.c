@@ -67,6 +67,7 @@
 #include <tchar.h>
 #include <stdio.h>
 #include <wingdi.h>
+#include <stdint.h>
 
 #include "main.h"
 
@@ -291,6 +292,46 @@ void AddTime(int diff)
         }
     }
     erreicht = 0;
+}
+
+//****************************************************************************
+//  SetNextEvent
+//****************************************************************************
+void SetNextEvent(void)
+{
+    SYSTEMTIME st;
+    int akt;
+    int evt;
+    int dif;
+    int min = 235959;
+
+    GetLocalTime(&st);
+    akt = (st.wHour*100+st.wMinute)*100+st.wSecond;
+
+    for(int i=0; i<10; i++)
+    {
+        ereignis *e = &ereignisse[i];
+
+        if (strlen(e->grund) > 0)
+        {
+            erreicht = 0;
+            evt = (e->std*100+e->min)*100+e->sec;
+            if (evt < akt)
+            {
+                evt += 240000;
+            }
+            dif = evt - akt;
+            if (dif < min)
+            {
+                min = dif;
+                EZ.wHour = e->std;
+                EZ.wMinute = e->min;
+                EZ.wSecond = e->sec;
+                strcpy(alarmgrund, e->grund);
+            }
+        }
+    }
+
 }
 
 //****************************************************************************
@@ -1162,6 +1203,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 hPopupMenu = CreatePopupMenu();
                 AppendMenu(hPopupMenu, MF_STRING, IDM_EDIT, "&Eingabe Endzeit");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_LIST, "&Bearbeite Liste");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_NEXT, "&nächstes Ereignis");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
                 //AppendMenu(hPopupMenu, MF_STRING | MF_CHECKED, IDM_RESTZEIT, "&Restzeit bei Minimiert");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
                 AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEX, "&Verstecken B");
@@ -1186,6 +1229,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_EDIT, "Eingabe &Endzeit");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_LIST, "Bearbeite &Liste");
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_NEXT, "&nächstes Ereignis");
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_TOP, "&TopMost");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_HIDE, "&Verstecken");
@@ -1272,63 +1317,64 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     return TRUE;
 
                 case IDM_HIDEX:
-                {
                     uhren[0].hide = !uhren[0].hide;
                     CheckMenuItem(hPopupMenu, IDM_HIDEX, uhren[0].hide?MF_CHECKED:MF_UNCHECKED);
                     ShowWindow(uhren[0].hWnd, uhren[0].hide?SW_HIDE:SW_SHOW);
                     ShowWindow(uhren[0].hWnd, uhren[0].hide?SW_HIDE:SW_RESTORE);
                     // Restore Window
                     SendMessage(uhren[0].hWnd, WM_COMMAND, IDM_RESTORE, 0);
-                }
                     return TRUE;
                     break;
 
                 case IDM_HIDEY:
-                {
                     uhren[1].hide = !uhren[1].hide;
                     CheckMenuItem(hPopupMenu, IDM_HIDEY, uhren[1].hide?MF_CHECKED:MF_UNCHECKED);
                     ShowWindow(uhren[1].hWnd, uhren[1].hide?SW_HIDE:SW_RESTORE);
                     // Restore Window
                     SendMessage(uhren[1].hWnd, WM_COMMAND, IDM_RESTORE, 0);
-                }
                     return TRUE;
                     break;
 
                 case IDM_HIDEZ:
-                {
                     uhren[2].hide = !uhren[2].hide;
                     CheckMenuItem(hPopupMenu, IDM_HIDEZ, uhren[2].hide?MF_CHECKED:MF_UNCHECKED);
                     ShowWindow(uhren[2].hWnd, uhren[2].hide?SW_HIDE:SW_MAXIMIZE);
                     // Restore Window
                     SendMessage(uhren[2].hWnd, WM_COMMAND, IDM_RESTORE, 0);
-                }
                     return TRUE;
                     break;
+
                 case IDM_TOPX:
-                {
                     uhren[0].top = !uhren[0].top;
                     CheckMenuItem(hPopupMenu, IDM_TOPX, uhren[0].top?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(uhren[0].hSMenu, IDM_TOP, uhren[0].top?MF_CHECKED:MF_UNCHECKED);
                     SetWindowPos(uhren[0].hWnd, uhren[0].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                }
                     return TRUE;
 
                 case IDM_TOPY:
-                {
                     uhren[1].top = !uhren[1].top;
                     CheckMenuItem(hPopupMenu, IDM_TOPY, uhren[1].top?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(uhren[1].hSMenu, IDM_TOP, uhren[1].top?MF_CHECKED:MF_UNCHECKED);
                     SetWindowPos(uhren[1].hWnd, uhren[1].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                }
                     return TRUE;
 
                 case IDM_TOPZ:
-                {
                     uhren[2].top = !uhren[2].top;
                     CheckMenuItem(hPopupMenu, IDM_TOPZ, uhren[2].top?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(uhren[2].hSMenu, IDM_TOP, uhren[2].top?MF_CHECKED:MF_UNCHECKED);
                     SetWindowPos(uhren[2].hWnd, uhren[2].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                }
+                    return TRUE;
+
+                case IDM_NOSOUND:
+                    sound_off = !sound_off;
+                    CheckMenuItem(uhren[0].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    CheckMenuItem(uhren[1].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    CheckMenuItem(uhren[2].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    CheckMenuItem(hPopupMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    return TRUE;
+
+                case IDM_NEXT:
+                    SetNextEvent();
                     return TRUE;
 
             }
@@ -1378,6 +1424,18 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     CheckMenuItem(uhren[selUhr].hSMenu, IDM_TOP, uhren[selUhr].top?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(hPopupMenu, IDM_TOPX + selUhr, uhren[selUhr].top?MF_CHECKED:MF_UNCHECKED);
                     SetWindowPos(hwndDlg, uhren[selUhr].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+                    return TRUE;
+
+                case IDM_NOSOUND:
+                    sound_off = !sound_off;
+                    CheckMenuItem(uhren[0].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    CheckMenuItem(uhren[1].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    CheckMenuItem(uhren[2].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    CheckMenuItem(hPopupMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    return TRUE;
+
+                case IDM_NEXT:
+                    SetNextEvent();
                     return TRUE;
             }
             break;
@@ -1550,12 +1608,6 @@ static LRESULT CALLBACK DlgProcEdit(HWND hwndEDlg, UINT uMsg, WPARAM wParam, LPA
             SetDlgItemText(hwndEDlg, IDD_EDIT_GRUND, alarmgrund);
             return TRUE;
 
-        case WM_SIZE:
-            /*
-             * TODO: Add code to process resizing, when needed.
-             */
-            return TRUE;
-
         case WM_COMMAND:
             switch (GET_WM_COMMAND_ID(wParam, lParam))
             {
@@ -1642,6 +1694,11 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
                 case IDD_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndADlg, (DLGPROC)DlgProcEdit);
                     break;
+                case IDD_WEITER:
+                    SetNextEvent();
+                    break;
+                case IDD_STOPP:
+                   break;
             }
             AlarmDlg = 0;
             EndDialog(hwndADlg, 0);
@@ -1658,6 +1715,7 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
         case WM_LBUTTONUP:
         case WM_CLOSE:
             AlarmDlg = 0;
+            SetNextEvent();
             EndDialog(hwndADlg, 0);
             return TRUE;
     }
