@@ -76,6 +76,7 @@
 #define IDM_TOPZ        6013
 #define IDM_NEXT        6015
 #define IDM_NOSOUND     6016
+#define IDM_SORT        6017
 
 #define IDD_ALARM_TEXT  7001
 

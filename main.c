@@ -53,6 +53,8 @@
 // 2.0.0.47 Vorläufige Endversion                               aN 11.09.2023
 // 2.9.0.48 WinUhrME, der Anfang                                aN 14.09.2023
 // 2.9.0.49 Sound-Effekt ergänzt                                aN 15.09.2023
+// 3.0.0.50 Ein guter Anfang                                    aN 19.09.2023
+// 3.0.0.51 Sortieren der Liste und trimmen von Texten          aN 20.09.2023
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -332,6 +334,83 @@ void SetNextEvent(void)
         }
     }
 
+}
+
+//****************************************************************************
+//  trim
+//****************************************************************************
+char *trim(char *string)
+{
+    int stPos,endPos;
+    int len = strlen(string);
+    for(stPos = 0;stPos < len && (string[stPos] == ' '||string[stPos] == '\t');++stPos)
+        ;
+    for(endPos = len - 1;endPos >= 0 && (string[endPos] == ' '||string[endPos] == '\t'||string[endPos] == '\n');--endPos)
+        ;
+    char *trimmedStr = (char *)malloc(len * sizeof(char));
+    strncpy(trimmedStr, string + stPos, endPos + 1);
+    trimmedStr[endPos+1] = 0;
+    return trimmedStr;
+}
+
+//****************************************************************************
+//  dotrim
+//****************************************************************************
+char *dotrim(char *string)
+{
+    char *hStr = trim(string);
+    strcpy(string, hStr);
+    free(hStr);
+    return string;
+}
+
+//****************************************************************************
+//  SortList
+//****************************************************************************
+void SortList(void)
+{
+    ereignis * e1, *e2;
+    int v1, v2;
+    int ok = 0;
+    int tausch;
+
+    while(!ok)
+    {
+        ok = 1;
+        for(int i = 0; i < 9; i++)
+        {
+            e1 = &ereignisse[i];
+            e2 = &ereignisse[i + 1];
+            tausch = 0;
+            if(strlen(e1->grund) == 0)
+            {
+                if(strlen(e2->grund) > 0)
+                {
+                    tausch = 1;
+                }
+            }
+            else
+            {
+                if (strlen(e2->grund) > 0)
+                {
+                    v1 = (e1->std * 100 + e1->min) * 100 + e1->sec;
+                    v2 = (e2->std * 100 + e2->min) * 100 + e2->sec;
+                    if(v2 < v1)
+                    {
+                        tausch = 1;
+                    }
+                }
+            }
+            if(tausch == 1)
+            {
+                ereignis h;
+                h = *e1;
+                *e1 = *e2;
+                *e2 = h;
+                ok = 0;
+            }
+        }
+    }
 }
 
 //****************************************************************************
@@ -958,7 +1037,7 @@ void SaveRect(void)
         for (int i=0; i<10; i++)
         {
             ereignis *e = &ereignisse[i];
-            fprintf(f, "%02d:%02d:%02d,%s\n",e->std,e->min,e->sec,e->grund);
+            fprintf(f, "%02d:%02d:%02d,%s\n",e->std,e->min,e->sec,trim(e->grund));
         }
         fclose(f);
     }
@@ -1062,15 +1141,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         }
 
         // Grund für Alarm lesen
-        fgets(alarmgrund, 99, f);
-        for (unsigned i = 0; i < strlen(alarmgrund); i++)
-        {
-            if ('\n' == alarmgrund[i])
-            {
-                alarmgrund[i] = 0;
-                break;
-            }
-        }
+        fgets(alarmgrund, 100, f);
+        dotrim(alarmgrund);
 
         // Rechteck einlesen
         for (int i = 0; i < 3; i++)
@@ -1092,6 +1164,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
             e->std = (char)h;
             e->min = (char)m;
             e->sec = (char)s;
+            dotrim(e->grund);
         }
 
         // Datei schließen
@@ -1201,10 +1274,10 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             if (NULL == hPopupMenu)
             {
                 hPopupMenu = CreatePopupMenu();
-                AppendMenu(hPopupMenu, MF_STRING, IDM_EDIT, "&Eingabe Endzeit");
-                AppendMenu(hPopupMenu, MF_STRING, IDM_LIST, "&Bearbeite Liste");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_EDIT, "Eingabe &Endzeit");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_LIST, "Bearbeite &Liste");
+                AppendMenu(hPopupMenu, MF_STRING, IDM_SORT, "&Sortiere Liste");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_NEXT, "&nächstes Ereignis");
-                AppendMenu(hPopupMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
                 //AppendMenu(hPopupMenu, MF_STRING | MF_CHECKED, IDM_RESTZEIT, "&Restzeit bei Minimiert");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
                 AppendMenu(hPopupMenu, MF_STRING, IDM_HIDEX, "&Verstecken B");
@@ -1215,6 +1288,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 AppendMenu(hPopupMenu, MF_STRING, IDM_TOPY, "&TopMost D");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_TOPZ, "&TopMost A");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
+                AppendMenu(hPopupMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_RESTORE, "&Wiederherstellen");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
                 AppendMenu(hPopupMenu, MF_STRING, IDM_EXIT, "&Ende");
@@ -1229,11 +1303,12 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_EDIT, "Eingabe &Endzeit");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_LIST, "Bearbeite &Liste");
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_SORT, "&Sortiere Liste");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_NEXT, "&nächstes Ereignis");
-            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_TOP, "&TopMost");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_HIDE, "&Verstecken");
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
 
             SetColors(hwndDlg, (HDC)wParam);
             SetBkfColor(gForegroundColor, gBackgroundColor, (HDC)wParam);
@@ -1313,6 +1388,11 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_LIST:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
+                    SaveRect();
+                    return TRUE;
+
+                case IDM_SORT:
+                    SortList();
                     SaveRect();
                     return TRUE;
 
@@ -1410,6 +1490,11 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_LIST:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
+                    SaveRect();
+                    return TRUE;
+
+                case IDM_SORT:
+                    SortList();
                     SaveRect();
                     return TRUE;
 
@@ -1749,8 +1834,8 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             {
                 case IDOK:
                     // Alarm lesen
-                    GetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr, 99);
-                    items=sscanf(hStr, "%u:%u:%u", &h, &m, &s);
+                    GetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr, 100);
+                    items=sscanf(hStr, "%d:%d:%d", &h, &m, &s);
                     // eine Einfache Syntaxprüfung der Eingabe  ** aN 09.08.2023
                     switch(items)
                     {
@@ -1777,18 +1862,21 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     }
 
                     GetDlgItemText(hwndDlg, IDD_EVENT_AKT, alarmgrund, 100);
-
+                    dotrim(alarmgrund);
+                    
                     // Liste lesen
                     for (int i=0; i<10; i++)
                     {
                         ereignis *e = &ereignisse[i];
 
+                        memset(e,0,sizeof(ereignis));
                         GetDlgItemText(hwndDlg,IDD_ZEIT_01+i*2,hStr,100);
-                        sscanf(hStr,"%u:%u:%u",&h,&m,&s);
-                        e->std = (char)h;
-                        e->min = (char)m;
-                        e->sec = (char)s;
+                        sscanf(hStr,"%d:%d:%d",&h,&m,&s);
+                        e->std = (char)(h%24);
+                        e->min = (char)(m%60);
+                        e->sec = (char)(s%60);
                         GetDlgItemText(hwndDlg,IDD_EVENT_01+i*2,e->grund,100);
+                        //dotrim(e->grund);
                     }
                     // und speichern
                     SaveRect();
