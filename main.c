@@ -55,6 +55,7 @@
 // 2.9.0.49 Sound-Effekt ergänzt                                aN 15.09.2023
 // 3.0.0.50 Ein guter Anfang                                    aN 19.09.2023
 // 3.0.0.51 Sortieren der Liste und trimmen von Texten          aN 20.09.2023
+// 3.0.0.52 Tastenkürzeltabelle eingebaut                       aN 22.09.2023
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -1101,6 +1102,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     INITCOMMONCONTROLSEX icc;
     WNDCLASSEX wcx;
     MSG Msg;
+    HANDLE hAccelTable = NULL;
     int wHour, wMinute, wSecond;
     char hStr[200];
     RECT r;
@@ -1187,6 +1189,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     hBackIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDR_ICO_TRAY3), IMAGE_ICON, ICONSIZE, ICONSIZE, 0);
     hBigIcon  = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDR_ICO_TRAY4), IMAGE_ICON, BIGICONSIZE, BIGICONSIZE, 0);
 
+    hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDACCEL));
+
     if (!RegisterClassEx(&wcx))
         return 0;
 
@@ -1196,19 +1200,19 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     uhren[0].hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(DLG_MAIN_X), NULL, (DLGPROC)DlgProcMain);
     uhren[1].hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(DLG_MAIN_Y), NULL, (DLGPROC)DlgProcMain);
     uhren[2].hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(DLG_MAIN_Z), NULL, (DLGPROC)DlgProcMain);
-	Refresh(uhren[0].hWnd);
-	Refresh(uhren[1].hWnd);
-	Refresh(uhren[2].hWnd);
+    Refresh(uhren[0].hWnd);
+    Refresh(uhren[1].hWnd);
+    Refresh(uhren[2].hWnd);
     //DialogBox(hInstance, MAKEINTRESOURCE(DLG_MAIN), NULL, (DLGPROC)DlgProcMain);
 
     while (GetMessage(&Msg, NULL, 0, 0) > 0)
     {
 #if 1
-        //if(!IsDialogMessage(hwndDlg, &Msg))
-        //{
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
-        //}
+        if (!TranslateAccelerator(uhren[0].hWnd,hAccelTable,&Msg)) 
+        {
+            TranslateMessage(&Msg);
+            DispatchMessage(&Msg);
+        }
 #else
         if (!IsDialogMessage(hWnd[0], &Msg))
         {

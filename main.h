@@ -60,6 +60,8 @@
 #define IDD_EVENT_09    4032
 #define IDD_EVENT_10    4034
 
+#define IDACCEL         3001
+
 #define IDM_EDIT        6001
 #define IDM_LIST        6014
 #define IDM_MINI        6002
