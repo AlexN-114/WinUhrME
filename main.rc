@@ -67,8 +67,8 @@ FONT 8, "MS Sans Serif", 0, 0, 1
 }
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 3,0,0,52
-PRODUCTVERSION 3,0,0,52
+FILEVERSION 3,0,0,53
+PRODUCTVERSION 3,0,0,53
 FILEFLAGSMASK 0x3F
 FILEFLAGS 0x0
 FILEOS VOS__WINDOWS32
@@ -82,12 +82,12 @@ FILESUBTYPE VFT2_UNKNOWN
       VALUE "Comments", "Eine kleine Windows-Uhr\0"
       VALUE "CompanyName", "/-\. /\/. - Software\0"
       VALUE "FileDescription", "Anzeige der Uhrzeit mehrfache Ereignisse (digital,analog,gemischt)\0"
-      VALUE "FileVersion", "3.0.0.52\0"
+      VALUE "FileVersion", "3.0.0.53\0"
       VALUE "InternalName", "WinUhrME\0"
       VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2023\0"
       VALUE "OriginalFilename", "WinUhrME.exe\0"
       VALUE "ProductName", "WinUhrME\0"
-      VALUE "ProductVersion", "3.0.0.52\0"
+      VALUE "ProductVersion", "3.0.0.53\0"
     }
   }
   BLOCK "VarFileInfo"
@@ -144,6 +144,15 @@ FONT 8, "Tahoma", 0, 0, 1
   CONTROL "Cancel", IDCANCEL, "Button", WS_TABSTOP, 104, 228, 45, 15
 }
 
+DLG_INFO DIALOGEX DISCARDABLE 6, 6, 190, 100
+STYLE WS_POPUP|WS_CAPTION|WS_SYSMENU
+CAPTION "Über"
+FONT 9, "MS Sans Serif", 0, 0, 1
+{
+  CONTROL "WinUhrME", IDD_BTN_INFO, "Button", BS_GROUPBOX, 6, 5, 178, 89
+  CONTROL "hier kommt die Info hin", IDD_TEXT_INFO, "Static", SS_CENTER|WS_GROUP, 12, 14, 168, 76
+}
+
 LANGUAGE LANG_GERMAN,SUBLANG_GERMAN
 
 IDACCEL ACCELERATORS
@@ -157,5 +166,12 @@ IDACCEL ACCELERATORS
   81, IDM_EXIT, VIRTKEY, CONTROL
   83, IDM_SORT, VIRTKEY
   83, IDM_SORT, VIRTKEY, CONTROL
+  73, IDM_INFO, VIRTKEY
+  73, IDM_INFO, VIRTKEY, CONTROL
+}
+
+STRINGTABLE
+{
+  IDS_ABOUT_FORM, "\nWindows-Uhr mehrfache Ereignisse\r\n\r\nProduktionen: Pelles C / %s %d.%d.%d\r\n\r\nVersion: %s\r\n\r\nDatum: %s - Zeit: %s\r\n%s"
 }
 

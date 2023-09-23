@@ -56,6 +56,7 @@
 // 3.0.0.50 Ein guter Anfang                                    aN 19.09.2023
 // 3.0.0.51 Sortieren der Liste und trimmen von Texten          aN 20.09.2023
 // 3.0.0.52 Tastenkürzeltabelle eingebaut                       aN 22.09.2023
+// 3.0.0.53 Info-Dialog eingebaut                               aN 23.09.2023
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -100,6 +101,7 @@ static LRESULT CALLBACK DlgProcMain(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcEdit(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcAlarm(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcList(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcInfo(HWND, UINT, WPARAM, LPARAM);
 void AktOutput(HWND hwndDlg);
 void SetColors(HWND hwndCtl, HDC wParam);
 HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc);
@@ -280,6 +282,82 @@ void GetParams(char *szCmdline)
         i++;
     }
 }
+
+char* GetVersionString(char *szVersion)
+{
+    HMODULE hModule;
+    char fname[201];
+    int vis;
+    void *vi;
+    void *version;
+    unsigned iv = sizeof(version);
+
+    hModule = (HMODULE)GetModuleHandle (NULL);
+    GetModuleFileName (hModule, fname, 200);
+    vis = GetFileVersionInfoSize (fname, NULL);
+    if (vis)
+    {
+        vi = malloc (vis);
+        GetFileVersionInfo (fname, 0, vis, vi);
+        VerQueryValue (vi, "\\StringFileInfo\\0C0704B0\\ProductVersion", &version, &iv);
+    }
+    sprintf (szVersion, "%s", (char *)version);
+    return szVersion;
+}
+int GetMyVersion(char *szVersion)
+{
+    HMODULE hModule;
+    char fname[201], sFormat[201];
+    int ret;
+    int vis;
+    void *vi;
+    void * version;
+    void * copyright;
+    unsigned iv = sizeof(version);
+    unsigned ic = sizeof(copyright);
+    char tag[3], monat[5], jahr[5], datum[15];
+
+    sscanf (__DATE__, "%3s %2s %4s", monat, tag, jahr);
+    sprintf (datum, "%s. %s %s", tag, monat, jahr);
+
+    hModule = (HMODULE)GetModuleHandle (NULL);
+    LoadString (hModule, IDS_ABOUT_FORM, sFormat, 200);
+
+    GetModuleFileName (hModule, fname, 200);
+    vis = GetFileVersionInfoSize (fname, NULL);
+    if (vis)
+    {
+        vi = malloc (vis);
+        GetFileVersionInfo (fname, 0, vis, vi);
+        VerQueryValue (vi, "\\StringFileInfo\\0C0704B0\\ProductVersion", &version, &iv);
+        VerQueryValue (vi, "\\StringFileInfo\\0C0704B0\\LegalCopyRight", &copyright, &ic);
+
+#if defined (__clang__)
+        sprintf (szVersion, sFormat, "Clang", __clang_major__, __clang_minor__, __clang_patchlevel__, (char *)version, datum, __TIME__, (char *)copyright);
+#elif defined (__TINYC__)
+        sprintf (szVersion, sFormat, "TinyCC", 0, __TINYC__ / 100, __TINYC__ % 100, (char *)version, datum, __TIME__, (char *)copyright);
+#elif defined (__GNUC__)
+        sprintf (szVersion, sFormat, "GCC", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, (char *)version, datum, __TIME__, (char *)copyright);
+#elif defined (__POCC__)
+        sprintf (szVersion, sFormat, "pocc", __POCC__ / 100, __POCC__ % 100, 0, (char *) version, datum, __TIME__, (char *) copyright);
+#elif defined (__ORANGEC__)
+        sprintf (szVersion, sFormat, "Orange C/C++", __ORANGEC__ / 100, __ORANGEC__ % 100, 0, (char *) version, datum, (char *) copyright);
+#elif defined (_MSC_VER)
+        sprintf (szVersion, sFormat, "MSVC", _MSC_VER / 100, (_MSC_VER / 10) % 10, _MSC_VER % 10, (char *)version, datum, __TIME__, (char *)copyright);
+#else
+        sprintf (szVersion, sFormat, 9, 9, 9, (char *)version, datum, __TIME__, (char *)copyright);
+#endif // __GNUC__
+
+        free (vi);
+        ret = 0;
+    }
+    else
+    {
+        ret = -1;
+    }
+    return ret;
+}
+
 
 // zur Endzeit EZ 'diff'-Minuten addieren
 void AddTime(int diff)
@@ -1295,6 +1373,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 AppendMenu(hPopupMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_RESTORE, "&Wiederherstellen");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
+                AppendMenu(hPopupMenu, MF_STRING, IDM_INFO, "&Info");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_EXIT, "&Ende");
             }
 
@@ -1304,6 +1383,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 selUhr = sU++;
             }
             uhren[selUhr].hSMenu = GetSystemMenu(hwndDlg, FALSE);
+            AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_INFO, "&Info");
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_EDIT, "Eingabe &Endzeit");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_LIST, "Bearbeite &Liste");
@@ -1388,6 +1469,10 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 case IDM_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
                     SaveRect();
+                    return TRUE;
+
+                case IDM_INFO:
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_INFO), hwndDlg, (DLGPROC)DlgProcInfo);
                     return TRUE;
 
                 case IDM_LIST:
@@ -1495,6 +1580,10 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 case IDM_LIST:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
                     SaveRect();
+                    return TRUE;
+
+                case IDM_INFO:
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_INFO), hwndDlg, (DLGPROC)DlgProcInfo);
                     return TRUE;
 
                 case IDM_SORT:
@@ -1901,3 +1990,26 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
     return FALSE;
 }
+
+static LRESULT CALLBACK DlgProcInfo(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    char outstr[300];
+
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+            GetMyVersion(outstr);
+            SetDlgItemText(hwndDlg, IDD_TEXT_INFO, outstr);
+            return TRUE;
+
+        case WM_CLOSE:
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDBLCLK:
+            EndDialog(hwndDlg, 0);
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+

@@ -11,6 +11,7 @@
 #define DLG_EDIT        1004
 #define DLG_ALARM       1005
 #define DLG_EVENTLIST   1006
+#define DLG_INFO        1007
 
 #define IDM_MENU        2001
 
@@ -62,6 +63,8 @@
 
 #define IDACCEL         3001
 
+#define IDS_ABOUT_FORM  5001
+
 #define IDM_EDIT        6001
 #define IDM_LIST        6014
 #define IDM_MINI        6002
@@ -79,6 +82,9 @@
 #define IDM_NEXT        6015
 #define IDM_NOSOUND     6016
 #define IDM_SORT        6017
+#define IDM_INFO        6018
+
+
 
 #define IDD_ALARM_TEXT  7001
 
@@ -87,3 +93,5 @@
 #define IDD_TEXT_ZEIT   8003
 #define IDD_TEXT_GRUND  8004
 #define IDD_TEXT_ENDE   8005
+#define IDD_TEXT_INFO   8006
+#define IDD_BTN_INFO    8007
