@@ -172,6 +172,6 @@ IDACCEL ACCELERATORS
 
 STRINGTABLE
 {
-  IDS_ABOUT_FORM, "\nWindows-Uhr mehrfache Ereignisse\r\n\r\nProduktionen: Pelles C / %s %d.%d.%d\r\n\r\nVersion: %s\r\n\r\nDatum: %s - Zeit: %s\r\n%s"
+  IDS_ABOUT_FORM, "\nWindows-Uhr mehrfache Ereignisse\r\n\r\nPelles C IDE / %s %d.%d.%d\r\n\r\nVersion: %s\r\n\r\nDatum: %s - Zeit: %s\r\n%s"
 }
 

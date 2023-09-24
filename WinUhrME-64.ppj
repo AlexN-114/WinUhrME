@@ -69,7 +69,11 @@ output64\main.obj: \
 # 
 output64\main.res: \
 	main.rc \
-	main.h
+	fanfare.wav \
+	main.h \
+	mainp.ico \
+	tray3p.ico \
+	tray4p.ico
 	$(RC) $(RCFLAGS) "$!" -Fo"$@"
 
 .EXCLUDEDFILES:
