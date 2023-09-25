@@ -67,8 +67,8 @@ FONT 8, "MS Sans Serif", 0, 0, 1
 }
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 3,0,0,53
-PRODUCTVERSION 3,0,0,53
+FILEVERSION 3,0,0,54
+PRODUCTVERSION 3,0,0,54
 FILEFLAGSMASK 0x3F
 FILEFLAGS 0x0
 FILEOS VOS__WINDOWS32
@@ -82,12 +82,12 @@ FILESUBTYPE VFT2_UNKNOWN
       VALUE "Comments", "Eine kleine Windows-Uhr\0"
       VALUE "CompanyName", "/-\. /\/. - Software\0"
       VALUE "FileDescription", "Anzeige der Uhrzeit mehrfache Ereignisse (digital,analog,gemischt)\0"
-      VALUE "FileVersion", "3.0.0.53\0"
+      VALUE "FileVersion", "3.0.0.54\0"
       VALUE "InternalName", "WinUhrME\0"
       VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2023\0"
       VALUE "OriginalFilename", "WinUhrME.exe\0"
       VALUE "ProductName", "WinUhrME\0"
-      VALUE "ProductVersion", "3.0.0.53\0"
+      VALUE "ProductVersion", "3.0.0.54\0"
     }
   }
   BLOCK "VarFileInfo"
@@ -142,6 +142,7 @@ FONT 8, "Tahoma", 0, 0, 1
   CONTROL "Ereignis 10", IDD_EVENT_10, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 56, 204, 144, 12
   CONTROL "OK", IDOK, "Button", WS_TABSTOP, 156, 228, 45, 15
   CONTROL "Cancel", IDCANCEL, "Button", WS_TABSTOP, 104, 228, 45, 15
+  CONTROL "--> Liste", IDD_IN_LISTE, "Button", WS_TABSTOP, 8, 32, 40, 10
 }
 
 DLG_INFO DIALOGEX DISCARDABLE 6, 6, 190, 100

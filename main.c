@@ -57,6 +57,7 @@
 // 3.0.0.51 Sortieren der Liste und trimmen von Texten          aN 20.09.2023
 // 3.0.0.52 Tastenkürzeltabelle eingebaut                       aN 22.09.2023
 // 3.0.0.53 Info-Dialog eingebaut                               aN 23.09.2023
+// 3.0.0.54 aktuelles Ereignis in Liste eintragen               aN 25.09.2023
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -412,7 +413,27 @@ void SetNextEvent(void)
             }
         }
     }
+}
 
+//****************************************************************************
+//  SetNextEvent
+//****************************************************************************
+void AktEvent2Liste(void)
+{
+    int i;
+
+    for(i=0; i<10; i++)
+    {
+        if(strlen(ereignisse[i].grund) == 0)
+        {
+            ereignisse[i].std = (BYTE)EZ.wHour;
+            ereignisse[i].min = (BYTE)EZ.wMinute;
+            ereignisse[i].sec = (BYTE)EZ.wSecond;
+            strcpy(ereignisse[i].grund, alarmgrund);
+            return;
+        }
+    }
+    MessageBox(uhren[0].hWnd,"kein Platz frei!","Ereignis in Liste eintragen",MB_ICONERROR);
 }
 
 //****************************************************************************
@@ -1974,6 +1995,18 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     // und speichern
                     SaveRect();
                     EndDialog(hwndDlg, TRUE);
+                    return TRUE;
+
+                case IDD_IN_LISTE:
+                    AktEvent2Liste();
+                    for (int i=0; i<10; i++)
+                    {
+                        ereignis e = ereignisse[i];
+                        SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
+                        sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
+                        SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
+                    }
+                    SaveRect();
                     return TRUE;
 
                 case IDCANCEL:

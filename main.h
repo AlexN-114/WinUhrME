@@ -95,3 +95,4 @@
 #define IDD_TEXT_ENDE   8005
 #define IDD_TEXT_INFO   8006
 #define IDD_BTN_INFO    8007
+#define IDD_IN_LISTE  4035
