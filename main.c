@@ -58,6 +58,7 @@
 // 3.0.0.52 Tastenkürzeltabelle eingebaut                       aN 22.09.2023
 // 3.0.0.53 Info-Dialog eingebaut                               aN 23.09.2023
 // 3.0.0.54 aktuelles Ereignis in Liste eintragen               aN 25.09.2023
+// 3.0.0.55 Parameter 'N' - starte mit nächsten Ereignis        aN 26.09.2023
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -103,6 +104,8 @@ static LRESULT CALLBACK DlgProcEdit(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcAlarm(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcList(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcInfo(HWND, UINT, WPARAM, LPARAM);
+BOOL PlayResource(LPSTR lpName);
+void SetNextEvent(void);
 void AktOutput(HWND hwndDlg);
 void SetColors(HWND hwndCtl, HDC wParam);
 HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc);
@@ -270,6 +273,11 @@ void GetParams(char *szCmdline)
                 AddTime(p);
                 break;
             }
+
+            case 'N':
+            case 'n':
+                SetNextEvent();
+                break;
 
             case '/': // Spanne
             case '-':
