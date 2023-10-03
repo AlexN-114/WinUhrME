@@ -1029,11 +1029,22 @@ void AktOutput(HWND hwndDlg)
 HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc)
 {
     static HBRUSH ReUsableBrush;
+    COLORREF tc, bc;
 
+    if (RZ.wHour > 11)
+    {
+        tc = TxtColr-0x7f7f7f;
+        bc = BkColr+0x7f7f7f;
+    }
+    else
+    {
+        tc = TxtColr;
+        bc = BkColr;
+    } 
     DeleteObject(ReUsableBrush);
-    ReUsableBrush = CreateSolidBrush(BkColr);
-    SetTextColor(hdc, TxtColr);
-    SetBkColor(hdc, BkColr);
+    ReUsableBrush = CreateSolidBrush(bc);
+    SetTextColor(hdc, tc);
+    SetBkColor(hdc, bc);
     return ReUsableBrush;
 }
 
@@ -1045,7 +1056,7 @@ void SetColors(HWND hwndCtl, HDC wParam)
     static COLORREF old_back = 0;
     int id;
     int delta;
-    int abstand = 24*60;
+    int abstand = 12*60;
     int tx_r,tx_g,tx_b;
     int bg_r,bg_g,bg_b;
 
@@ -1053,7 +1064,7 @@ void SetColors(HWND hwndCtl, HDC wParam)
 
     if (id == IDD_RESTZEIT)
     {
-        delta = (RZ.wHour * 60 + RZ.wMinute);
+        delta = (RZ.wHour * 60 + RZ.wMinute)%abstand;
         // abstand = (DZ.wHour * 60 + DZ.wMinute);
         if (0 == abstand)
             abstand = 60;  // Korrektur bei Abstand 0
@@ -1436,7 +1447,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 nid.uFlags = NIF_ICON + NIF_MESSAGE + NIF_TIP;  //Flags to set requires fields
                 nid.uCallbackMessage = WM_SHELLNOTIFY;  // Message ID sent when the pointer enters Tray icon area
                 nid.hIcon = LoadIcon(ghInstance, MAKEINTRESOURCE(IDR_ICO_MAIN));  //Load Icon for tray
-                lstrcpy(nid.szTip, "WinUhr2");  //Tray Icon Tool Tip
+                lstrcpy(nid.szTip, "WinUhrME");  //Tray Icon Tool Tip
                 Shell_NotifyIcon(NIM_ADD, &nid);  //Show the Icon
             }
 
