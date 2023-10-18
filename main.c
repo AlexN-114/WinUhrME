@@ -1658,6 +1658,15 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             }
             break;
 
+        case WM_MOUSEMOVE:
+            return TRUE;
+
+        case WM_MOUSEHOVER:
+            return TRUE;
+
+        case WM_MOUSELEAVE:
+            return TRUE;
+
         case WM_TIMER:
             // Analoguhr
             if (TIMER_UHRA == wParam)
