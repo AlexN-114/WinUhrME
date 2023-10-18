@@ -59,6 +59,7 @@
 // 3.0.0.53 Info-Dialog eingebaut                               aN 23.09.2023
 // 3.0.0.54 aktuelles Ereignis in Liste eintragen               aN 25.09.2023
 // 3.0.0.55 Parameter 'N' - starte mit nächsten Ereignis        aN 26.09.2023
+// 3.0.0.56 ToolTip für Alarmgrund eingebaut                    aN 18.10.2023
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -1366,6 +1367,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    static TOOLINFO toolTip = { 0 };
+    static HWND hToolTip;
     char hStr[100];
     SYSTEMTIME Jetzt;
     POINT pt;
@@ -1373,6 +1376,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     static int sU = 0;
     int selUhr = -1;
     int i;
+
 
     memset(hStr, 0, 100);
 
@@ -1451,7 +1455,21 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 Shell_NotifyIcon(NIM_ADD, &nid);  //Show the Icon
             }
 
-            // SendDlgItemMessage(hwndDlg,IDI_ACLOCK,STM_SETICON,(WPARAM)nid.hIcon,(LPARAM)0);
+            if (toolTip.cbSize == 0)
+            {
+                toolTip.cbSize = sizeof(TOOLINFO);
+                toolTip.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+                toolTip.lpszText = alarmgrund;
+            }
+            toolTip.hwnd = hwndDlg;
+            toolTip.uId = (UINT_PTR)(hwndDlg);
+
+            // Rufen Sie die `CreateWindowEx`-Funktion auf, um das Tooltip-Fenster zu erstellen.
+            hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
+                                           CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndDlg, NULL, ghInstance, NULL);
+
+            // Rufen Sie die `UpdateWindow`-Funktion auf, um das Tooltip-Fenster zu aktualisieren.
+            SendMessage(hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
 
             return TRUE;
 
@@ -1508,6 +1526,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
+                    toolTip.lpszText = alarmgrund;
+                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
                     SaveRect();
                     return TRUE;
 
@@ -1517,6 +1537,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_LIST:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
+                    toolTip.lpszText = alarmgrund;
+                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
                     SaveRect();
                     return TRUE;
 
@@ -1584,6 +1606,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_NEXT:
                     SetNextEvent();
+                    toolTip.lpszText = alarmgrund;
+                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
                     return TRUE;
 
             }
@@ -1615,10 +1639,14 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
+                    toolTip.lpszText = alarmgrund;
+                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
                     return TRUE;
 
                 case IDM_LIST:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
+                    toolTip.lpszText = alarmgrund;
+                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
                     SaveRect();
                     return TRUE;
 
@@ -1654,10 +1682,12 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_NEXT:
                     SetNextEvent();
+                    toolTip.lpszText = alarmgrund;
+                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
                     return TRUE;
             }
             break;
-
+#if 0
         case WM_MOUSEMOVE:
             return TRUE;
 
@@ -1666,7 +1696,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
         case WM_MOUSELEAVE:
             return TRUE;
-
+#endif
         case WM_TIMER:
             // Analoguhr
             if (TIMER_UHRA == wParam)
