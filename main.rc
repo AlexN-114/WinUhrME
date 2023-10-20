@@ -67,8 +67,8 @@ FONT 8, "MS Sans Serif", 0, 0, 1
 }
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 3,0,0,54
-PRODUCTVERSION 3,0,0,54
+FILEVERSION 3,0,0,56
+PRODUCTVERSION 3,0,0,56
 FILEFLAGSMASK 0x3F
 FILEFLAGS 0x0
 FILEOS VOS__WINDOWS32
@@ -80,23 +80,22 @@ FILESUBTYPE VFT2_UNKNOWN
     BLOCK "0C0704B0"
     {
       VALUE "Comments", "Eine kleine Windows-Uhr\0"
-#ifdef __PORC__
       VALUE "CompanyName", "/-\. /\/. - Software\0"
-#else
-      VALUE "CompanyName", "/-\\. /\\/. - Software\0"
-#endif
       VALUE "FileDescription", "Anzeige der Uhrzeit mehrfache Ereignisse (digital,analog,gemischt)\0"
-      VALUE "FileVersion", "3.0.0.54\0"
+      VALUE "FileVersion", "3.0.0.56\0"
       VALUE "InternalName", "WinUhrME\0"
       VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2023\0"
       VALUE "OriginalFilename", "WinUhrME.exe\0"
       VALUE "ProductName", "WinUhrME\0"
-      VALUE "ProductVersion", "3.0.0.54\0"
+      VALUE "ProductVersion", "3.0.0.56\0"
+    }
+    BLOCK "040704B0"
+    {
     }
   }
   BLOCK "VarFileInfo"
   {
-    VALUE "Translation", 0xC07, 0x4B0
+    VALUE "Translation", 0xC07, 0x4B0, 0x407, 0x4B0
   }
 }
 
