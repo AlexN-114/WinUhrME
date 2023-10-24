@@ -482,22 +482,46 @@ char *dotrim(char *string)
 //****************************************************************************
 void AktToolTip(void)
 {
-    // Rufen Sie die `UpdateWindow`-Funktion auf, um das Tooltip-Fenster zu aktualisieren.
-    toolTip.lpszText = alarmgrund;
-    toolTip.hwnd = uhren[0].hWnd;
-    //SendMessage(uhren[0].hToolTip, TTM_SETTOOLINFO, 0, (LPARAM)(&toolTip));
+    if (toolTip.cbSize == 0)
+    {
+        toolTip.cbSize = sizeof(TOOLINFO);
+        toolTip.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+    }
+
+
     SendMessage(uhren[0].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
-    SendMessage(uhren[0].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
-    toolTip.hwnd = uhren[1].hWnd;
-    //SendMessage(uhren[1].hToolTip, TTM_SETTOOLINFO, 0, (LPARAM)(&toolTip));
     SendMessage(uhren[1].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
-    SendMessage(uhren[1].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
-    toolTip.hwnd = uhren[2].hWnd;
-    //SendMessage(uhren[2].hToolTip, TTM_SETTOOLINFO, 0, (LPARAM)(&toolTip));
     SendMessage(uhren[2].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
+
+    DestroyWindow(uhren[0].hToolTip);
+    DestroyWindow(uhren[1].hToolTip);
+    DestroyWindow(uhren[2].hToolTip);
+
+    //toolTip.uId = (UINT_PTR)(hwndDlg);
+    toolTip.lpszText = alarmgrund;
+
+    toolTip.uId = (UINT_PTR)uhren[0].hWnd;
+    toolTip.hwnd = uhren[0].hWnd;
+    uhren[0].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
+                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                       toolTip.hwnd, NULL, ghInstance, NULL);
+    SendMessage(uhren[0].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
+
+    toolTip.uId = (UINT_PTR)uhren[1].hWnd;
+    toolTip.hwnd = uhren[1].hWnd;
+    uhren[1].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
+                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                                       toolTip.hwnd, NULL, ghInstance, NULL);
+    SendMessage(uhren[1].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
+
+    toolTip.uId = (UINT_PTR)uhren[2].hWnd;
+    toolTip.hwnd = uhren[2].hWnd;
+    uhren[2].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
+                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                                       toolTip.hwnd, NULL, ghInstance, NULL);
     SendMessage(uhren[2].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
 
-    MessageBox(NULL,alarmgrund,"neuer Alarm",MB_OK);
+    // MessageBox(NULL,alarmgrund,"neuer Alarm",MB_OK);
 }
 
 //****************************************************************************
@@ -1353,29 +1377,11 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
     while (GetMessage(&Msg, NULL, 0, 0) > 0)
     {
-#if 1
         if (!TranslateAccelerator(uhren[0].hWnd,hAccelTable,&Msg)) 
         {
             TranslateMessage(&Msg);
             DispatchMessage(&Msg);
         }
-#else
-        if (!IsDialogMessage(hWnd[0], &Msg))
-        {
-            TranslateMessage(&Msg);
-            DispatchMessage(&Msg);
-        }
-        if (!IsDialogMessage(hWnd[1], &Msg))
-        {
-            TranslateMessage(&Msg);
-            DispatchMessage(&Msg);
-        }
-        if (!IsDialogMessage(hWnd[2], &Msg))
-        {
-            TranslateMessage(&Msg);
-            DispatchMessage(&Msg);
-        }
-#endif
     }
 
     return TRUE;
@@ -1464,6 +1470,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_HIDE, "&Verstecken");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
 
+            AktToolTip();
+
             SetColors(hwndDlg, (HDC)wParam);
             SetBkfColor(gForegroundColor, gBackgroundColor, (HDC)wParam);
 
@@ -1479,22 +1487,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 lstrcpy(nid.szTip, "WinUhrME");  //Tray Icon Tool Tip
                 Shell_NotifyIcon(NIM_ADD, &nid);  //Show the Icon
             }
-
-            if (toolTip.cbSize == 0)
-            {
-                toolTip.cbSize = sizeof(TOOLINFO);
-                toolTip.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-                toolTip.lpszText = alarmgrund;
-            }
-            toolTip.hwnd = hwndDlg;
-            toolTip.uId = (UINT_PTR)(hwndDlg);
-
-            //BookMark [{Init-ToolTip}]
-            // Rufen Sie die `CreateWindowEx`-Funktion auf, um das Tooltip-Fenster zu erstellen.
-            uhren[selUhr].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
-                                                    CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndDlg, NULL, ghInstance, NULL);
-            // Rufen Sie die `UpdateWindow`-Funktion auf, um das Tooltip-Fenster zu aktualisieren.
-            SendMessage(uhren[selUhr].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
 
             return TRUE;
 
