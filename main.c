@@ -60,6 +60,7 @@
 // 3.0.0.54 aktuelles Ereignis in Liste eintragen               aN 25.09.2023
 // 3.0.0.55 Parameter 'N' - starte mit nächsten Ereignis        aN 26.09.2023
 // 3.0.0.56 ToolTip für Alarmgrund eingebaut                    aN 18.10.2023
+// 3.0.0.57 ToolTip ziemlich fertig                             aN 25.10.2023
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -119,6 +120,7 @@ typedef struct
 {
     HWND hWnd;
     HMENU hSMenu;
+    HWND hToolTip;
     int hide;
     int top;
     RECT rWndDlg;
@@ -148,6 +150,9 @@ static NOTIFYICONDATA nid = {0};
 static HICON hIcon;
 static HICON hBIcon;
 
+static TOOLINFO toolTip = { 0 };
+//static HWND hToolTip;
+
 int AlarmDlg = 0;  // Flag ob der Alarmdialog eingeschaltet ist
 int erreicht = 0;  // Flag für Zeit erreicht
 int sound_off = 0; // Sound on/off
@@ -158,9 +163,9 @@ SYSTEMTIME RZ = { 0, 0, 0, 0,0,0,0,0};
 char alarmgrund[100] = "";
 char *wota[] = {"So\0nntag","Mo\0ntag","Di\0enstag","Mi\0ttwoch","Do\0nnerstag","Fr\0eitag","Sa\0mstag"};
 
-uhr uhren[3] = {{NULL,NULL,0,0,{0,0,0,0}},
-                {NULL,NULL,0,0,{0,0,0,0}},
-                {NULL,NULL,0,0,{0,0,0,0}}};
+uhr uhren[3] = {{NULL,NULL,NULL,0,0,{0,0,0,0}},
+                {NULL,NULL,NULL,0,0,{0,0,0,0}},
+                {NULL,NULL,NULL,0,0,{0,0,0,0}}};
 
 //! Sound-Ausgabe
 BOOL PlayResource(LPSTR lpName)
@@ -452,11 +457,11 @@ char *trim(char *string)
 {
     int stPos,endPos;
     int len = strlen(string);
-    for(stPos = 0;stPos < len && (string[stPos] == ' '||string[stPos] == '\t');++stPos)
-        ;
     for(endPos = len - 1;endPos >= 0 && (string[endPos] == ' '||string[endPos] == '\t'||string[endPos] == '\n');--endPos)
         ;
-    char *trimmedStr = (char *)malloc(len * sizeof(char));
+    for(stPos = 0;stPos < endPos && (string[stPos] == ' '||string[stPos] == '\t');++stPos)
+        ;
+    char *trimmedStr = (char *)malloc((len+1) * sizeof(char));
     strncpy(trimmedStr, string + stPos, endPos + 1);
     trimmedStr[endPos+1] = 0;
     return trimmedStr;
@@ -471,6 +476,56 @@ char *dotrim(char *string)
     strcpy(string, hStr);
     free(hStr);
     return string;
+}
+
+//****************************************************************************
+//  AktToolTip - Tooltip aktuallisieren
+//****************************************************************************
+void AktToolTip(void)
+{
+    if (toolTip.cbSize == 0)
+    {
+        toolTip.cbSize = sizeof(TOOLINFO);
+        toolTip.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+    }
+
+    SendMessage(uhren[0].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
+    SendMessage(uhren[1].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
+    SendMessage(uhren[2].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
+
+    DestroyWindow(uhren[0].hToolTip);
+    DestroyWindow(uhren[1].hToolTip);
+    DestroyWindow(uhren[2].hToolTip);
+
+    //toolTip.uId = (UINT_PTR)(hwndDlg);
+    toolTip.lpszText = alarmgrund;
+
+    toolTip.uId = (UINT_PTR)uhren[0].hWnd;
+    toolTip.hwnd = uhren[0].hWnd;
+    uhren[0].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
+                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                       toolTip.hwnd, NULL, ghInstance, NULL);
+    SendMessage(uhren[0].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
+
+    toolTip.uId = (UINT_PTR)uhren[1].hWnd;
+    toolTip.hwnd = uhren[1].hWnd;
+    uhren[1].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
+                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                                       toolTip.hwnd, NULL, ghInstance, NULL);
+    SendMessage(uhren[1].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
+
+    toolTip.uId = (UINT_PTR)uhren[2].hWnd;
+    toolTip.hwnd = uhren[2].hWnd;
+    uhren[2].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
+                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                                       toolTip.hwnd, NULL, ghInstance, NULL);
+    SendMessage(uhren[2].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
+
+    UpdateWindow(uhren[0].hWnd);
+    UpdateWindow(uhren[1].hWnd);
+    UpdateWindow(uhren[2].hWnd);
+
+    // MessageBox(NULL,alarmgrund,"neuer Alarm",MB_OK);
 }
 
 //****************************************************************************
@@ -1302,7 +1357,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         /* Add our own stuff */
     wcx.hInstance = hInstance;
     wcx.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDR_ICO_MAIN));
-    wcx.lpszClassName = _T("WinUhrClass");
+    wcx.lpszClassName = _T("WinUhrMEClass");
 
     // Tray-Icons laden
     hBackIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDR_ICO_TRAY3), IMAGE_ICON, ICONSIZE, ICONSIZE, 0);
@@ -1326,29 +1381,11 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
     while (GetMessage(&Msg, NULL, 0, 0) > 0)
     {
-#if 1
         if (!TranslateAccelerator(uhren[0].hWnd,hAccelTable,&Msg)) 
         {
             TranslateMessage(&Msg);
             DispatchMessage(&Msg);
         }
-#else
-        if (!IsDialogMessage(hWnd[0], &Msg))
-        {
-            TranslateMessage(&Msg);
-            DispatchMessage(&Msg);
-        }
-        if (!IsDialogMessage(hWnd[1], &Msg))
-        {
-            TranslateMessage(&Msg);
-            DispatchMessage(&Msg);
-        }
-        if (!IsDialogMessage(hWnd[2], &Msg))
-        {
-            TranslateMessage(&Msg);
-            DispatchMessage(&Msg);
-        }
-#endif
     }
 
     return TRUE;
@@ -1367,8 +1404,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    static TOOLINFO toolTip = { 0 };
-    static HWND hToolTip;
     char hStr[100];
     SYSTEMTIME Jetzt;
     POINT pt;
@@ -1376,7 +1411,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     static int sU = 0;
     int selUhr = -1;
     int i;
-
 
     memset(hStr, 0, 100);
 
@@ -1439,6 +1473,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_HIDE, "&Verstecken");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
 
+            AktToolTip();
+
             SetColors(hwndDlg, (HDC)wParam);
             SetBkfColor(gForegroundColor, gBackgroundColor, (HDC)wParam);
 
@@ -1454,22 +1490,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 lstrcpy(nid.szTip, "WinUhrME");  //Tray Icon Tool Tip
                 Shell_NotifyIcon(NIM_ADD, &nid);  //Show the Icon
             }
-
-            if (toolTip.cbSize == 0)
-            {
-                toolTip.cbSize = sizeof(TOOLINFO);
-                toolTip.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-                toolTip.lpszText = alarmgrund;
-            }
-            toolTip.hwnd = hwndDlg;
-            toolTip.uId = (UINT_PTR)(hwndDlg);
-
-            // Rufen Sie die `CreateWindowEx`-Funktion auf, um das Tooltip-Fenster zu erstellen.
-            hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
-                                           CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndDlg, NULL, ghInstance, NULL);
-
-            // Rufen Sie die `UpdateWindow`-Funktion auf, um das Tooltip-Fenster zu aktualisieren.
-            SendMessage(hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
 
             return TRUE;
 
@@ -1526,8 +1546,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
-                    toolTip.lpszText = alarmgrund;
-                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
+                    AktToolTip();
                     SaveRect();
                     return TRUE;
 
@@ -1537,8 +1556,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_LIST:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
-                    toolTip.lpszText = alarmgrund;
-                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
+                    AktToolTip();
                     SaveRect();
                     return TRUE;
 
@@ -1606,8 +1624,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_NEXT:
                     SetNextEvent();
-                    toolTip.lpszText = alarmgrund;
-                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
+                    AktToolTip();
+                    SaveRect();
                     return TRUE;
 
             }
@@ -1639,14 +1657,13 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
-                    toolTip.lpszText = alarmgrund;
-                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
+                    AktToolTip();
+                    SaveRect();
                     return TRUE;
 
                 case IDM_LIST:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
-                    toolTip.lpszText = alarmgrund;
-                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
+                    AktToolTip();
                     SaveRect();
                     return TRUE;
 
@@ -1682,8 +1699,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDM_NEXT:
                     SetNextEvent();
-                    toolTip.lpszText = alarmgrund;
-                    SendMessage(hToolTip, TTM_SETTOOLINFO , 0, (LPARAM)(&toolTip));
+                    AktToolTip();
+                    SaveRect();
                     return TRUE;
             }
             break;
@@ -1803,8 +1820,9 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
             break;
 
+#if 0
         case WM_RBUTTONUP:
-        //SendMessage(hwndDlg, WM_SYSCOMMAND, IDM_MINI , 0);
+            //SendMessage(hwndDlg, WM_SYSCOMMAND, IDM_MINI , 0);
             for (i = 0; i < 3; i++)
             {
                 if (hwndDlg == uhren[i].hWnd)
@@ -1816,6 +1834,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             }
             return TRUE;
             break;
+#endif
 
         case WM_MOVE:
         case WM_WINDOWPOSCHANGED:
@@ -1911,9 +1930,6 @@ static LRESULT CALLBACK DlgProcEdit(HWND hwndEDlg, UINT uMsg, WPARAM wParam, LPA
             EndDialog(hwndEDlg, 0);
             return TRUE;
 
-            /*
-             * TODO: Add more messages, when needed.
-             */
     }
 
     return FALSE;
@@ -2102,5 +2118,4 @@ static LRESULT CALLBACK DlgProcInfo(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
     return FALSE;
 }
-
 
