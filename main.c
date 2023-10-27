@@ -9,57 +9,61 @@
  *                                                                          *
  ****************************************************************************/
 
-// Änderungsgeschichte
-// 1.0.1.05 Im Edit-Dialog alte Endzeit als Vorgabe anzeigen    aN 27.03.2007
-// 1.0.1.06 Aufruf für Edit-Dialog auf modal geändert           aN 27.03.2007
-// 1.0.1.07 Speichern und Wiederherstellen der Fensterposition  aN 10.04.2007
-// 1.0.1.08 Eine einfache Syntaxprüfung der Eingabe ergänzt     aN 10.04.2007
-// 1.0.1.09 Eine einfache Syntaxprüfung der Eingabe ergänzt     aN 10.04.2007
-// 1.0.1.10 Bei fscanf die Anzahl gelesener Parameter geprüft   aN 10.04.2007
-// 1.0.1.11 Farbcodes für die Restzeit                          aN 11.04.2007
-// 1.0.1.12 Farben angepaßt und in SetColors gechoben           aN 11.04.2007
-// 1.0.1.13 Minimieren auf Klick-Rechts                         aN 16.04.2007
-// 1.0.1.14 Experimente mit Menüs, AktOutput                    aN 16.04.2007
-// 1.0.1.15 Anzeige umschaltbar bei Minimiert                   aN 03.05.2007
-// 1.0.1.16 Bei minimiert, Endzeitdialog Systemmodal            aN 04.06.2007
-// 1.0.1.17 Alarmdialog                                         aN 05.06.2007
-// 1.0.1.18 Alarmdialog Modal und zentriert                     aN 14.03.2012
-// 1.0.1.19 Grund für Alarm, Eingabe und Verwaltung             aN 17.04.2012
-// 1.0.1.20 Animiertes Tray-Icon                                aN 30.07.2012
-// 1.0.1.23 Reduzierung des Aktualisieren der Anzeige           aN 31.07.2012
-// 1.0.1.24 Main-Icon an Anzeige anpassen                       aN 31.07.2012
-// 1.0.1.25 GDI-Leak in TrayIcon-Erzeugung korrigiert           aN 01.08.2012
-// 1.0.1.26 GDI-Leak korrigiert 2.Versuch                       aN 01.08.2012
-// 1.0.1.27 Anderes Format für Titelzeile                       aN 19.09.2012
-// 1.0.1.28 Nochmals anderes Format für Titelzeile              aN 05.10.2012
-// 1.0.1.29 größeres Zeit-Icon                                  aN 07.04.2023
-// 1.0.1.30 Parameter Z(eit) und "Grund"                        aN 15.04.2023
-// 1.9.0.31 Einlesen von ini und Parameter korrigiert           aN 28.06.2023
-// 1.9.0.32 INI folgt EXE-Namen                                 aN 30.06.2023
-// 1.9.0.33 Nur ein Edit-Dialog bei Doppelklick                 aN 01.07.2023
-// 1.9.0.34 Bei Alarm Verlängerungsbuttons                      aN 02.07.2023
-// 1.9.0.35 gemeinsame Daten in eine Struktur                   aN 08.07.2023
-// 1.9.0.36 Uhren einzeln verstecken und wieder holen           aN 09.07.2023
-// 1.9.0.37 bei Alarm ein vierter Button Edit                   aN 10.07.2023
-// 1.9.0.38 Fenster auf TopMost schalten                        aN 22.07.2023
-// 2.0.0.39 Uhren differenzieren analog, digital, beides        aN 27.07.2023
-// 2.0.0.40 HPEN nach Gebrauch wieder löschen                   aN 31.07.2023
-// 2.0.0.41 Parameter S(panne) auswerten                        aN 07.08.2023
-// 2.0.0.42 Edit-Dialog überarbeitet                            aN 09.08.2023
-// 2.0.0.43 Restzeit-Berechnung neu                             aN 14.08.2023
-// 2.0.0.44 Farbrechnung und Farbe-Stundenzeiger neu            aN 18.08.2023
-// 2.0.0.45 Refresh ohne RDW_ERASE und wieder zurück            aN 21.08.2023
-// 2.0.0.46 Systemicon setzen mit WM_SETICON (64Bit-tauglich)   aN 05.09.2023
-// 2.0.0.47 Vorläufige Endversion                               aN 11.09.2023
-// 2.9.0.48 WinUhrME, der Anfang                                aN 14.09.2023
-// 2.9.0.49 Sound-Effekt ergänzt                                aN 15.09.2023
-// 3.0.0.50 Ein guter Anfang                                    aN 19.09.2023
-// 3.0.0.51 Sortieren der Liste und trimmen von Texten          aN 20.09.2023
-// 3.0.0.52 Tastenkürzeltabelle eingebaut                       aN 22.09.2023
-// 3.0.0.53 Info-Dialog eingebaut                               aN 23.09.2023
-// 3.0.0.54 aktuelles Ereignis in Liste eintragen               aN 25.09.2023
-// 3.0.0.55 Parameter 'N' - starte mit nächsten Ereignis        aN 26.09.2023
-// 3.0.0.56 ToolTip für Alarmgrund eingebaut                    aN 18.10.2023
+//***********************
+// Änderungsgeschichte **
+//***********************
+// aN / 27.03.2007 / 1.0.1.05 / Im Edit-Dialog alte Endzeit als Vorgabe anzeigen
+// aN / 27.03.2007 / 1.0.1.06 / Aufruf für Edit-Dialog auf modal geändert
+// aN / 10.04.2007 / 1.0.1.07 / Speichern und Wiederherstellen der Fensterposition
+// aN / 10.04.2007 / 1.0.1.08 / Eine einfache Syntaxprüfung der Eingabe ergänzt
+// aN / 10.04.2007 / 1.0.1.09 / Eine einfache Syntaxprüfung der Eingabe ergänzt
+// aN / 10.04.2007 / 1.0.1.10 / Bei fscanf die Anzahl gelesener Parameter geprüft
+// aN / 11.04.2007 / 1.0.1.11 / Farbcodes für die Restzeit
+// aN / 11.04.2007 / 1.0.1.12 / Farben angepaßt und in SetColors gehoben
+// aN / 16.04.2007 / 1.0.1.13 / Minimieren auf Klick-Rechts
+// aN / 16.04.2007 / 1.0.1.14 / Experimente mit Menüs, AktOutput
+// aN / 03.05.2007 / 1.0.1.15 / Anzeige umschaltbar bei Minimiert
+// aN / 04.06.2007 / 1.0.1.16 / Bei minimiert, Endzeitdialog Systemmodal
+// aN / 05.06.2007 / 1.0.1.17 / Alarmdialog
+// aN / 14.03.2012 / 1.0.1.18 / Alarmdialog Modal und zentriert
+// aN / 17.04.2012 / 1.0.1.19 / Grund für Alarm, Eingabe und Verwaltung
+// aN / 30.07.2012 / 1.0.1.20 / Animiertes Tray-Icon
+// aN / 31.07.2012 / 1.0.1.23 / Reduzierung des Aktualisieren der Anzeige
+// aN / 31.07.2012 / 1.0.1.24 / Main-Icon an Anzeige anpassen
+// aN / 01.08.2012 / 1.0.1.25 / GDI-Leak in TrayIcon-Erzeugung korrigiert
+// aN / 01.08.2012 / 1.0.1.26 / GDI-Leak korrigiert 2.Versuch
+// aN / 19.09.2012 / 1.0.1.27 / Anderes Format für Titelzeile
+// aN / 05.10.2012 / 1.0.1.28 / Nochmals anderes Format für Titelzeile
+// aN / 07.04.2023 / 1.0.1.29 / größeres Zeit-Icon
+// aN / 15.04.2023 / 1.0.1.30 / Parameter Z(eit) und "Grund"
+// aN / 28.06.2023 / 1.9.0.31 / Einlesen von ini und Parameter korrigiert
+// aN / 30.06.2023 / 1.9.0.32 / INI folgt EXE-Namen
+// aN / 01.07.2023 / 1.9.0.33 / Nur ein Edit-Dialog bei Doppelklick
+// aN / 02.07.2023 / 1.9.0.34 / Bei Alarm Verlängerungsbuttons
+// aN / 08.07.2023 / 1.9.0.35 / gemeinsame Daten in eine Struktur
+// aN / 09.07.2023 / 1.9.0.36 / Uhren einzeln verstecken und wieder holen
+// aN / 10.07.2023 / 1.9.0.37 / bei Alarm ein vierter Button Edit
+// aN / 22.07.2023 / 1.9.0.38 / Fenster auf TopMost schalten
+// aN / 27.07.2023 / 2.0.0.39 / Uhren differenzieren analog, digital, beides
+// aN / 31.07.2023 / 2.0.0.40 / HPEN nach Gebrauch wieder löschen
+// aN / 07.08.2023 / 2.0.0.41 / Parameter S(panne) auswerten
+// aN / 09.08.2023 / 2.0.0.42 / Edit-Dialog überarbeitet
+// aN / 14.08.2023 / 2.0.0.43 / Restzeit-Berechnung neu
+// aN / 18.08.2023 / 2.0.0.44 / Farbrechnung und Farbe-Stundenzeiger neu
+// aN / 21.08.2023 / 2.0.0.45 / Refresh ohne RDW_ERASE und wieder zurück
+// aN / 05.09.2023 / 2.0.0.46 / Systemicon setzen mit WM_SETICON (64Bit-tauglich)
+// aN / 11.09.2023 / 2.0.0.47 / Vorläufige Endversion
+// aN / 14.09.2023 / 2.9.0.48 / WinUhrME, der Anfang
+// aN / 15.09.2023 / 2.9.0.49 / Sound-Effekt ergänzt
+// aN / 19.09.2023 / 3.0.0.50 / Ein guter Anfang
+// aN / 20.09.2023 / 3.0.0.51 / Sortieren der Liste und trimmen von Texten
+// aN / 22.09.2023 / 3.0.0.52 / Tastenkürzeltabelle eingebaut
+// aN / 23.09.2023 / 3.0.0.53 / Info-Dialog eingebaut
+// aN / 25.09.2023 / 3.0.0.54 / aktuelles Ereignis in Liste eintragen
+// aN / 26.09.2023 / 3.0.0.55 / Parameter 'N' - starte mit nächsten Ereignis
+// aN / 18.10.2023 / 3.0.0.56 / ToolTip für Alarmgrund eingebaut
+// aN / 25.10.2023 / 3.0.0.57 / ToolTip ziemlich fertig
+// aN / 27.10.2023 / 3.0.0.58 / Einige Bug-Fixes
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -91,7 +95,7 @@
 #define BIGIMAGESIZE        96
 #define STUNDE_COLOR_AM     RGB(  0,  0,255)
 #define STUNDE_COLOR_PM     RGB(  0,127,191)
-#define MINUTE_COLOR        RGB(  0,223,  0)
+#define MINUTE_COLOR        RGB(  0,127,  0)
 #define SEKUNDE_COLOR       RGB(  0,  0,  0)
 #define WECKER_COLOR_AM     RGB(255,  0,  0)
 #define WECKER_COLOR_PM     RGB(191, 64,  0)
@@ -108,6 +112,7 @@ static LRESULT CALLBACK DlgProcInfo(HWND, UINT, WPARAM, LPARAM);
 BOOL PlayResource(LPSTR lpName);
 void SetNextEvent(void);
 void AktOutput(HWND hwndDlg);
+void AktToolTip(void);
 void SetColors(HWND hwndCtl, HDC wParam);
 HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc);
 void SaveRect(void);
@@ -282,6 +287,8 @@ void GetParams(char *szCmdline)
             case 'N':
             case 'n':
                 SetNextEvent();
+                AktToolTip();
+                SaveRect();
                 break;
 
             case '/': // Spanne
@@ -488,7 +495,6 @@ void AktToolTip(void)
         toolTip.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
     }
 
-
     SendMessage(uhren[0].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
     SendMessage(uhren[1].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
     SendMessage(uhren[2].hToolTip, TTM_DELTOOL, 0, (LPARAM)(&toolTip));
@@ -520,6 +526,10 @@ void AktToolTip(void)
                                        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                                        toolTip.hwnd, NULL, ghInstance, NULL);
     SendMessage(uhren[2].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
+
+    UpdateWindow(uhren[0].hWnd);
+    UpdateWindow(uhren[1].hWnd);
+    UpdateWindow(uhren[2].hWnd);
 
     // MessageBox(NULL,alarmgrund,"neuer Alarm",MB_OK);
 }
@@ -1117,9 +1127,6 @@ void SetColors(HWND hwndCtl, HDC wParam)
     if (id == IDD_RESTZEIT)
     {
         delta = (RZ.wHour * 60 + RZ.wMinute)%abstand;
-        // abstand = (DZ.wHour * 60 + DZ.wMinute);
-        if (0 == abstand)
-            abstand = 60;  // Korrektur bei Abstand 0
 
         if (erreicht)
         {
@@ -1353,7 +1360,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         /* Add our own stuff */
     wcx.hInstance = hInstance;
     wcx.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDR_ICO_MAIN));
-    wcx.lpszClassName = _T("WinUhrClass");
+    wcx.lpszClassName = _T("WinUhrMEClass");
 
     // Tray-Icons laden
     hBackIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDR_ICO_TRAY3), IMAGE_ICON, ICONSIZE, ICONSIZE, 0);
@@ -1622,6 +1629,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 case IDM_NEXT:
                     SetNextEvent();
                     AktToolTip();
+                    SaveRect();
                     return TRUE;
 
             }
@@ -1654,6 +1662,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 case IDM_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
                     AktToolTip();
+                    SaveRect();
                     return TRUE;
 
                 case IDM_LIST:
@@ -1695,6 +1704,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 case IDM_NEXT:
                     SetNextEvent();
                     AktToolTip();
+                    SaveRect();
                     return TRUE;
             }
             break;
@@ -1812,6 +1822,8 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
         case WM_LBUTTONDBLCLK:
             DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
+            AktToolTip();
+            SaveRect();
             break;
 
 #if 0
@@ -1959,9 +1971,13 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
                     break;
                 case IDD_EDIT:
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndADlg, (DLGPROC)DlgProcEdit);
+                    AktToolTip();
+                    SaveRect();
                     break;
                 case IDD_WEITER:
                     SetNextEvent();
+                    AktToolTip();
+                    SaveRect();
                     break;
                 case IDD_STOPP:
                    break;
@@ -1973,6 +1989,8 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
         case WM_RBUTTONDBLCLK:
         case WM_RBUTTONUP:
             DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndADlg, (DLGPROC)DlgProcEdit);
+            AktToolTip();
+            SaveRect();
             AlarmDlg = 0;
             EndDialog(hwndADlg, 0);
             return TRUE;
@@ -1982,6 +2000,8 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
         case WM_CLOSE:
             AlarmDlg = 0;
             SetNextEvent();
+            AktToolTip();
+            SaveRect();
             EndDialog(hwndADlg, 0);
             return TRUE;
     }
@@ -2103,6 +2123,7 @@ static LRESULT CALLBACK DlgProcInfo(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             return TRUE;
 
         case WM_CLOSE:
+        case WM_LBUTTONUP:
         case WM_LBUTTONDBLCLK:
         case WM_RBUTTONDBLCLK:
             EndDialog(hwndDlg, 0);
@@ -2111,5 +2132,4 @@ static LRESULT CALLBACK DlgProcInfo(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
     return FALSE;
 }
-
 
