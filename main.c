@@ -64,6 +64,7 @@
 // aN / 18.10.2023 / 3.0.0.56 / ToolTip für Alarmgrund eingebaut
 // aN / 25.10.2023 / 3.0.0.57 / ToolTip ziemlich fertig
 // aN / 27.10.2023 / 3.0.0.58 / Einige Bug-Fixes
+// aN / 27.10.2023 / 3.0.0.60 / Einige kleine Änderungen
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
