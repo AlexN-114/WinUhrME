@@ -65,6 +65,7 @@
 // aN / 25.10.2023 / 3.0.0.57 / ToolTip ziemlich fertig
 // aN / 27.10.2023 / 3.0.0.58 / Einige Bug-Fixes
 // aN / 27.10.2023 / 3.0.0.60 / Einige kleine Änderungen
+// aN / 17.11.2023 / 3.0.0.61 / Statusanzeige
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -110,6 +111,7 @@ static LRESULT CALLBACK DlgProcEdit(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcAlarm(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcList(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcInfo(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcStatus(HWND, UINT, WPARAM, LPARAM);
 BOOL PlayResource(LPSTR lpName);
 void SetNextEvent(void);
 void AktOutput(HWND hwndDlg);
@@ -1596,7 +1598,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     // Restore Window
                     SendMessage(uhren[2].hWnd, WM_COMMAND, IDM_RESTORE, 0);
                     return TRUE;
-                    break;
 
                 case IDM_TOPX:
                     uhren[0].top = !uhren[0].top;
@@ -1625,12 +1626,14 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     CheckMenuItem(uhren[1].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(uhren[2].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(hPopupMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndDlg, (DLGPROC)DlgProcStatus);
                     return TRUE;
 
                 case IDM_NEXT:
                     SetNextEvent();
                     AktToolTip();
                     SaveRect();
+                    DialogBox(NULL, MAKEINTRESOURCE(DLG_STATUS), hwndDlg, (DLGPROC)DlgProcStatus);
                     return TRUE;
 
             }
@@ -1706,6 +1709,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     SetNextEvent();
                     AktToolTip();
                     SaveRect();
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndDlg, (DLGPROC)DlgProcStatus);
                     return TRUE;
             }
             break;
@@ -1979,6 +1983,7 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
                     SetNextEvent();
                     AktToolTip();
                     SaveRect();
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndADlg, (DLGPROC)DlgProcStatus);
                     break;
                 case IDD_STOPP:
                    break;
@@ -2134,3 +2139,31 @@ static LRESULT CALLBACK DlgProcInfo(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     return FALSE;
 }
 
+static LRESULT CALLBACK DlgProcStatus(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    char outstr[300];
+
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+            SetTimer(hwndDlg, TIMER_STATUS, 5000, NULL);
+            sprintf(outstr, "\r\nAlarm: %s\r\nTon  : %s", 
+                    alarmgrund, 
+                    (sound_off)?"aus":"an");
+            SetDlgItemText(hwndDlg, IDD_STATUS, outstr);
+            return TRUE;
+
+        case WM_TIMER:
+            KillTimer(hwndDlg, TIMER_STATUS);
+            EndDialog(hwndDlg, 0);
+            return TRUE;
+
+        case WM_CLOSE:
+        case WM_LBUTTONUP:
+        case WM_RBUTTONUP:
+            EndDialog(hwndDlg, 0);
+            return TRUE;
+    }
+
+    return FALSE;
+}

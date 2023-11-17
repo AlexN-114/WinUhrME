@@ -4,6 +4,7 @@
 
 #define TIMER_UHR       100
 #define TIMER_UHRA      101
+#define TIMER_STATUS    102
 
 #define DLG_MAIN_X      1001
 #define DLG_MAIN_Y      1002
@@ -12,6 +13,7 @@
 #define DLG_ALARM       1005
 #define DLG_EVENTLIST   1006
 #define DLG_INFO        1007
+#define DLG_STATUS      1008
 
 #define IDM_MENU        2001
 
@@ -96,3 +98,5 @@
 #define IDD_TEXT_INFO   8006
 #define IDD_BTN_INFO    8007
 #define IDD_IN_LISTE  4035
+
+#define IDD_STATUS  4036
