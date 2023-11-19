@@ -62,6 +62,8 @@
 #define IDD_EVENT_08    4030
 #define IDD_EVENT_09    4032
 #define IDD_EVENT_10    4034
+#define IDD_IN_LISTE    4035
+#define IDD_STATUS      4036
 
 #define IDACCEL         3001
 
@@ -97,6 +99,3 @@
 #define IDD_TEXT_ENDE   8005
 #define IDD_TEXT_INFO   8006
 #define IDD_BTN_INFO    8007
-#define IDD_IN_LISTE  4035
-
-#define IDD_STATUS  4036

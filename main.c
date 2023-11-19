@@ -1580,7 +1580,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     // Restore Window
                     SendMessage(uhren[0].hWnd, WM_COMMAND, IDM_RESTORE, 0);
                     return TRUE;
-                    break;
 
                 case IDM_HIDEY:
                     uhren[1].hide = !uhren[1].hide;
@@ -1589,7 +1588,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     // Restore Window
                     SendMessage(uhren[1].hWnd, WM_COMMAND, IDM_RESTORE, 0);
                     return TRUE;
-                    break;
 
                 case IDM_HIDEZ:
                     uhren[2].hide = !uhren[2].hide;
@@ -1983,8 +1981,9 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
                     SetNextEvent();
                     AktToolTip();
                     SaveRect();
+                    EndDialog(hwndADlg, 0);
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndADlg, (DLGPROC)DlgProcStatus);
-                    break;
+                    return TRUE;
                 case IDD_STOPP:
                    break;
             }
@@ -2147,7 +2146,8 @@ static LRESULT CALLBACK DlgProcStatus(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     {
         case WM_INITDIALOG:
             SetTimer(hwndDlg, TIMER_STATUS, 5000, NULL);
-            sprintf(outstr, "\r\nAlarm: %s\r\nTon  : %s", 
+            sprintf(outstr, "Zeit : %2d:%02d:%02d\r\nAlarm: %s\r\nTon  : %s",
+                    EZ.wHour,EZ.wMinute,EZ.wSecond,
                     alarmgrund, 
                     (sound_off)?"aus":"an");
             SetDlgItemText(hwndDlg, IDD_STATUS, outstr);
