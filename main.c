@@ -66,6 +66,7 @@
 // aN / 27.10.2023 / 3.0.0.58 / Einige Bug-Fixes
 // aN / 27.10.2023 / 3.0.0.60 / Einige kleine Änderungen
 // aN / 17.11.2023 / 3.0.0.61 / Statusanzeige
+// aN / 26.11.2023 / 3.0.0.62 / Statusanzeige per Menü/Tastendruck
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -1458,6 +1459,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 AppendMenu(hPopupMenu, MF_STRING, IDM_NOSOUND, "&kein Sound");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_RESTORE, "&Wiederherstellen");
                 AppendMenu(hPopupMenu, MF_SEPARATOR, 0, 0);
+                AppendMenu(hPopupMenu, MF_STRING, IDM_STATUS, "Stat&us");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_INFO, "&Info");
                 AppendMenu(hPopupMenu, MF_STRING, IDM_EXIT, "&Ende");
             }
@@ -1469,6 +1471,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             }
             uhren[selUhr].hSMenu = GetSystemMenu(hwndDlg, FALSE);
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
+            AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_STATUS, "Stat&us");
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_INFO, "&Info");
             AppendMenu(uhren[selUhr].hSMenu, MF_SEPARATOR, 0, 0);
             AppendMenu(uhren[selUhr].hSMenu, MF_STRING, IDM_EDIT, "Eingabe &Endzeit");
@@ -1555,6 +1558,10 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
                     AktToolTip();
                     SaveRect();
+                    return TRUE;
+
+                case IDM_STATUS:
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndDlg, (DLGPROC)DlgProcStatus);
                     return TRUE;
 
                 case IDM_INFO:
@@ -1671,6 +1678,10 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
                     AktToolTip();
                     SaveRect();
+                    return TRUE;
+
+                case IDM_STATUS:
+                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndDlg, (DLGPROC)DlgProcStatus);
                     return TRUE;
 
                 case IDM_INFO:

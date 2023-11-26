@@ -67,8 +67,8 @@ FONT 8, "MS Sans Serif", 0, 0, 1
 }
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 3,0,1,61
-PRODUCTVERSION 3,0,1,61
+FILEVERSION 3,0,1,62
+PRODUCTVERSION 3,0,1,62
 FILEFLAGSMASK 0x3F
 FILEFLAGS 0x0
 FILEOS VOS__WINDOWS32
@@ -82,12 +82,12 @@ FILESUBTYPE VFT2_UNKNOWN
       VALUE "Comments", "Eine kleine Windows-Uhr\0"
       VALUE "CompanyName", "/-\. /\/. - Software\0"
       VALUE "FileDescription", "Anzeige der Uhrzeit mehrfache Ereignisse (digital,analog,gemischt)\0"
-      VALUE "FileVersion", "3.0.1.61\0"
+      VALUE "FileVersion", "3.0.1.62\0"
       VALUE "InternalName", "WinUhrME\0"
       VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2023\0"
       VALUE "OriginalFilename", "WinUhrME.exe\0"
       VALUE "ProductName", "WinUhrME\0"
-      VALUE "ProductVersion", "3.0.1.61\0"
+      VALUE "ProductVersion", "3.0.1.62\0"
     }
   }
   BLOCK "VarFileInfo"
@@ -178,6 +178,8 @@ IDACCEL ACCELERATORS
   73, IDM_INFO, VIRTKEY, CONTROL
   84, IDM_NOSOUND, VIRTKEY
   84, IDM_NOSOUND, VIRTKEY, CONTROL
+  85, IDM_STATUS, VIRTKEY
+  85, IDM_STATUS, VIRTKEY, CONTROL
 }
 
 STRINGTABLE

@@ -87,6 +87,7 @@
 #define IDM_NOSOUND     6016
 #define IDM_SORT        6017
 #define IDM_INFO        6018
+#define IDM_STATUS      6019
 
 
 
