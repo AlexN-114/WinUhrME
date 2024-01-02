@@ -67,8 +67,8 @@ FONT 8, "MS Sans Serif", 0, 0, 1
 }
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 3,0,1,62
-PRODUCTVERSION 3,0,1,62
+FILEVERSION 3,0,1,63
+PRODUCTVERSION 3,0,1,63
 FILEFLAGSMASK 0x3F
 FILEFLAGS 0x0
 FILEOS VOS__WINDOWS32
@@ -82,17 +82,17 @@ FILESUBTYPE VFT2_UNKNOWN
       VALUE "Comments", "Eine kleine Windows-Uhr\0"
       VALUE "CompanyName", "/-\. /\/. - Software\0"
       VALUE "FileDescription", "Anzeige der Uhrzeit mehrfache Ereignisse (digital,analog,gemischt)\0"
-      VALUE "FileVersion", "3.0.1.62\0"
+      VALUE "FileVersion", "3.0.1.63\0"
       VALUE "InternalName", "WinUhrME\0"
-      VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2023\0"
+      VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2024\0"
       VALUE "OriginalFilename", "WinUhrME.exe\0"
       VALUE "ProductName", "WinUhrME\0"
-      VALUE "ProductVersion", "3.0.1.62\0"
+      VALUE "ProductVersion", "3.0.1.63\0"
     }
   }
   BLOCK "VarFileInfo"
   {
-    VALUE "Translation", 0xC07, 0x4B0, 0x407, 0x4B0
+    VALUE "Translation", 0xC07, 0x4B0
   }
 }
 
@@ -101,13 +101,13 @@ STYLE WS_POPUP|DS_SYSMODAL|DS_CONTEXTHELP|DS_SETFOREGROUND|DS_3DLOOK|DS_CENTER|W
 CAPTION "Achtung!"
 FONT 12, "MS Sans Serif", 0, 0, 1
 {
-  CONTROL "Weiter", IDD_WEITER, "Button", WS_TABSTOP, 122, 12, 28, 12
-  CONTROL "Stopp", IDD_STOPP, "Button", WS_TABSTOP, 122, 0, 28, 12
-  CONTROL "Edit", IDD_EDIT, "Button", WS_TABSTOP, 122, 24, 28, 12
-  CONTROL "+ 5 Min", IDD_5MIN, "Button", WS_TABSTOP, 2, 24, 28, 12
-  CONTROL "+ 15 Min", IDD_15MIN, "Button", WS_TABSTOP, 32, 24, 28, 12
-  CONTROL "+ 30 Min", IDD_30MIN, "Button", WS_TABSTOP, 62, 24, 28, 12
-  CONTROL "+ 60 Min", IDD_60MIN, "Button", WS_TABSTOP, 92, 24, 28, 12
+  CONTROL "&Weiter", IDD_WEITER, "Button", WS_TABSTOP, 122, 12, 28, 12
+  CONTROL "&Stopp", IDD_STOPP, "Button", WS_TABSTOP, 122, 0, 28, 12
+  CONTROL "&Edit", IDD_EDIT, "Button", WS_TABSTOP, 122, 24, 28, 12
+  CONTROL "+ &5 Min", IDD_5MIN, "Button", WS_TABSTOP, 2, 24, 28, 12
+  CONTROL "+ &15 Min", IDD_15MIN, "Button", WS_TABSTOP, 32, 24, 28, 12
+  CONTROL "+ &30 Min", IDD_30MIN, "Button", WS_TABSTOP, 62, 24, 28, 12
+  CONTROL "+ &60 Min", IDD_60MIN, "Button", WS_TABSTOP, 92, 24, 28, 12
   CONTROL "Die Terminzeit wurde erreicht", IDD_ALARM_TEXT, "Static", SS_CENTER|SS_CENTERIMAGE|SS_SUNKEN|WS_BORDER|WS_GROUP, 1, 1, 120, 22
 }
 
@@ -147,9 +147,11 @@ FONT 8, "Tahoma", 0, 0, 1
   CONTROL "Ereignis 09", IDD_EVENT_09, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 56, 188, 144, 12
   CONTROL "00:00:00", IDD_ZEIT_10, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 8, 204, 40, 12
   CONTROL "Ereignis 10", IDD_EVENT_10, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 56, 204, 144, 12
-  CONTROL "OK", IDOK, "Button", WS_TABSTOP, 156, 228, 45, 15
-  CONTROL "Cancel", IDCANCEL, "Button", WS_TABSTOP, 104, 228, 45, 15
-  CONTROL "--> Liste", IDD_IN_LISTE, "Button", WS_TABSTOP, 8, 32, 40, 10
+  CONTROL "&OK", IDOK, "Button", WS_TABSTOP, 156, 228, 45, 15
+  CONTROL "&Cancel", IDCANCEL, "Button", WS_TABSTOP, 104, 228, 45, 15
+  CONTROL "--> &Liste", IDD_IN_LISTE, "Button", WS_TABSTOP, 8, 32, 40, 10
+  CONTROL "&sortiere", IDD_SORT_LISTE, "Button", WS_TABSTOP, 52, 32, 40, 10
+  CONTROL "&nächstes", IDD_NEXT_LISTE, "Button", WS_TABSTOP, 96, 32, 40, 10
 }
 
 DLG_INFO DIALOGEX DISCARDABLE 6, 6, 190, 100

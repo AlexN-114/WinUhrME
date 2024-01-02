@@ -64,6 +64,8 @@
 #define IDD_EVENT_10    4034
 #define IDD_IN_LISTE    4035
 #define IDD_STATUS      4036
+#define IDD_SORT_LISTE  4038
+#define IDD_NEXT_LISTE  4039
 
 #define IDACCEL         3001
 

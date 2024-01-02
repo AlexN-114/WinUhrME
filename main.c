@@ -9,9 +9,9 @@
  *                                                                          *
  ****************************************************************************/
 
-//***********************
-// Änderungsgeschichte **
-//***********************
+//*********************//
+// Änderungsgeschichte //
+//*********************//*****/
 // aN / 27.03.2007 / 1.0.1.05 / Im Edit-Dialog alte Endzeit als Vorgabe anzeigen
 // aN / 27.03.2007 / 1.0.1.06 / Aufruf für Edit-Dialog auf modal geändert
 // aN / 10.04.2007 / 1.0.1.07 / Speichern und Wiederherstellen der Fensterposition
@@ -67,6 +67,7 @@
 // aN / 27.10.2023 / 3.0.0.60 / Einige kleine Änderungen
 // aN / 17.11.2023 / 3.0.0.61 / Statusanzeige
 // aN / 26.11.2023 / 3.0.0.62 / Statusanzeige per Menü/Tastendruck
+// aN / 26.12.2023 / 3.0.0.63 / Dialog Liste erweitert
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -82,6 +83,7 @@
 #include <stdio.h>
 #include <wingdi.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "main.h"
 
@@ -2102,6 +2104,79 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 case IDD_IN_LISTE:
                     AktEvent2Liste();
+                    for (int i=0; i<10; i++)
+                    {
+                        ereignis e = ereignisse[i];
+                        SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
+                        sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
+                        SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
+                    }
+                    SaveRect();
+                    return TRUE;
+
+                case IDD_SORT_LISTE:
+                    // Liste lesen
+                    for (int i=0; i<10; i++)
+                    {
+                        ereignis *e = &ereignisse[i];
+
+                        memset(e,0,sizeof(ereignis));
+                        GetDlgItemText(hwndDlg,IDD_ZEIT_01+i*2,hStr,100);
+                        sscanf(hStr,"%d:%d:%d",&h,&m,&s);
+                        e->std = (char)(h%24);
+                        e->min = (char)(m%60);
+                        e->sec = (char)(s%60);
+                        GetDlgItemText(hwndDlg,IDD_EVENT_01+i*2,e->grund,100);
+                        if (strchr(hStr,'X')!=NULL)
+                        {
+                            e->std = 0;
+                            e->min = 0;
+                            e->sec = 0;
+                            e->grund[0] = 0;
+                            continue;
+                        }
+
+                        //dotrim(e->grund);
+                    }
+                    SortList();
+                    for (int i=0; i<10; i++)
+                    {
+                        ereignis e = ereignisse[i];
+                        SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
+                        sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
+                        SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
+                    }
+                    SaveRect();
+                    return TRUE;
+
+                case IDD_NEXT_LISTE:
+                    // Liste lesen
+                    for (int i=0; i<10; i++)
+                    {
+                        ereignis *e = &ereignisse[i];
+
+                        memset(e,0,sizeof(ereignis));
+                        GetDlgItemText(hwndDlg,IDD_ZEIT_01+i*2,hStr,100);
+                        sscanf(hStr,"%d:%d:%d",&h,&m,&s);
+                        e->std = (char)(h%24);
+                        e->min = (char)(m%60);
+                        e->sec = (char)(s%60);
+                        GetDlgItemText(hwndDlg,IDD_EVENT_01+i*2,e->grund,100);
+                        strupr(hStr);
+                        if (strchr(hStr,'X')!=NULL)
+                        {
+                            e->std = 0;
+                            e->min = 0;
+                            e->sec = 0;
+                            e->grund[0] = 0;
+                            continue;
+                        }
+                        //dotrim(e->grund);
+                    }
+                    SetNextEvent();
+                    sprintf(hStr, "%02d:%02d:%02d", EZ.wHour, EZ.wMinute, EZ.wSecond);
+                    SetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr);
+                    SetDlgItemText(hwndDlg, IDD_EVENT_AKT, alarmgrund);
                     for (int i=0; i<10; i++)
                     {
                         ereignis e = ereignisse[i];
