@@ -88,7 +88,7 @@ FILESUBTYPE VFT2_UNKNOWN
       VALUE "FileDescription", "Anzeige der Uhrzeit mehrfache Ereignisse (digital,analog,gemischt)\0"
       VALUE "FileVersion", "3.0.1.63\0"
       VALUE "InternalName", "WinUhrME\0"
-      VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2023\0"
+      VALUE "LegalCopyright", "Alexander NEUMEISTER © 2007-2024\0"
       VALUE "OriginalFilename", "WinUhrME.exe\0"
       VALUE "ProductName", "WinUhrME\0"
       VALUE "ProductVersion", "3.0.1.63\0"
@@ -127,10 +127,11 @@ STYLE DS_SHELLFONT|WS_POPUP|DS_MODALFRAME|DS_CONTEXTHELP|DS_3DLOOK|WS_CAPTION|WS
 CAPTION "Ereignis-Liste"
 FONT 8, "Tahoma", 0, 0, 1
 {
-  CONTROL "aktuelles Ereignis", IDD_WEITER, "Button", BS_GROUPBOX, 4, 4, 200, 40
+  CONTROL "&aktuelles Ereignis", IDD_WEITER, "Button", BS_GROUPBOX, 4, 4, 200, 40
   CONTROL "00:00:00", IDD_ZEIT_AKT, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 8, 20, 40, 12
   CONTROL "Ereignis", IDD_EVENT_AKT, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 56, 20, 144, 12
-  CONTROL "Ereignisse", IDD_STOPP, "Button", BS_GROUPBOX, 4, 44, 200, 180
+  CONTROL "&Ereignisse", IDD_STOPP, "Button", BS_GROUPBOX|WS_GROUP, 4, 44, 216, 180
+
   CONTROL "00:00:00", IDD_ZEIT_01, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 8, 60, 40, 12
   CONTROL "Ereignis 01", IDD_EVENT_01, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 56, 60, 144, 12
   CONTROL "00:00:00", IDD_ZEIT_02, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 8, 76, 40, 12
@@ -151,9 +152,11 @@ FONT 8, "Tahoma", 0, 0, 1
   CONTROL "Ereignis 09", IDD_EVENT_09, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 56, 188, 144, 12
   CONTROL "00:00:00", IDD_ZEIT_10, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 8, 204, 40, 12
   CONTROL "Ereignis 10", IDD_EVENT_10, "Edit", ES_AUTOHSCROLL|WS_BORDER|WS_TABSTOP, 56, 204, 144, 12
-  CONTROL "OK", IDOK, "Button", WS_TABSTOP, 156, 228, 45, 15
-  CONTROL "Cancel", IDCANCEL, "Button", WS_TABSTOP, 104, 228, 45, 15
-  CONTROL "--> Liste", IDD_IN_LISTE, "Button", WS_TABSTOP, 8, 32, 40, 10
+  CONTROL "&OK", IDOK, "Button", WS_TABSTOP, 156, 228, 45, 15
+  CONTROL "&Cancel", IDCANCEL, "Button", WS_TABSTOP, 104, 228, 45, 15
+  CONTROL "--> &Liste", IDD_IN_LISTE, "Button", WS_TABSTOP, 8, 32, 40, 10
+  CONTROL "&sortiere", IDD_SORT_LISTE, "Button", WS_TABSTOP, 52, 32, 40, 10
+  CONTROL "&nächstes", IDD_NEXT_LISTE, "Button", WS_TABSTOP, 96, 32, 40, 10
 }
 
 DLG_INFO DIALOGEX DISCARDABLE 6, 6, 190, 100
