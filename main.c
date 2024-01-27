@@ -67,7 +67,9 @@
 // aN / 27.10.2023 / 3.0.0.60 / Einige kleine Änderungen
 // aN / 17.11.2023 / 3.0.0.61 / Statusanzeige
 // aN / 26.11.2023 / 3.0.0.62 / Statusanzeige per Menü/Tastendruck
-// aN / 26.12.2023 / 3.0.0.63 / Dialog Liste erweitert
+// aN / 23.01.2024 / 3.0.0.63 / GetList()/SetList()
+
+// aN / 27.01.2024 / 3.0.0.64 / Reihenfolge der Zeiger der gr. Uhr ändern
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -83,7 +85,6 @@
 #include <stdio.h>
 #include <wingdi.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "main.h"
 
@@ -107,24 +108,6 @@
 #define MASK_COLOR          RGB(255,255,255)
 #define GCL_HICON           (-14)
 
-/** Prototypes **************************************************************/
-
-static LRESULT CALLBACK DlgProcMain(HWND, UINT, WPARAM, LPARAM);
-static LRESULT CALLBACK DlgProcEdit(HWND, UINT, WPARAM, LPARAM);
-static LRESULT CALLBACK DlgProcAlarm(HWND, UINT, WPARAM, LPARAM);
-static LRESULT CALLBACK DlgProcList(HWND, UINT, WPARAM, LPARAM);
-static LRESULT CALLBACK DlgProcInfo(HWND, UINT, WPARAM, LPARAM);
-static LRESULT CALLBACK DlgProcStatus(HWND, UINT, WPARAM, LPARAM);
-BOOL PlayResource(LPSTR lpName);
-void SetNextEvent(void);
-void AktOutput(HWND hwndDlg);
-void AktToolTip(void);
-void SetColors(HWND hwndCtl, HDC wParam);
-HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc);
-void SaveRect(void);
-void CalcRestZeit(SYSTEMTIME j, SYSTEMTIME e, SYSTEMTIME *r);
-void AddTime(int diff);
-
 /** Typen *******************************************************************/
 typedef struct
 {
@@ -143,6 +126,28 @@ typedef struct
     UINT8 sec;
     char grund[100];
 } ereignis;
+/** Prototypes **************************************************************/
+
+static LRESULT CALLBACK DlgProcMain(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcEdit(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcAlarm(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcList(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcInfo(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK DlgProcStatus(HWND, UINT, WPARAM, LPARAM);
+BOOL PlayResource(LPSTR lpName);
+void SetNextEvent(void);
+void AktOutput(HWND hwndDlg);
+void AktToolTip(void);
+void SetColors(HWND hwndCtl, HDC wParam);
+HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc);
+void SaveRect(void);
+void CalcRestZeit(SYSTEMTIME j, SYSTEMTIME e, SYSTEMTIME *r);
+void AddTime(int diff);
+char *dotrim(char *string);
+void GetList(HWND hWnd);
+void SetList(HWND hWnd);
+
+
 /** Global variables ********************************************************/
 
 static HANDLE ghInstance;
@@ -215,6 +220,83 @@ BOOL PlayResource(LPSTR lpName)
 
     return bRtn;
 }
+//****************************************************************************
+//  GetList
+//****************************************************************************
+void GetList(HWND hWnd)
+{
+    char hStr[100];
+    int items;
+    int h,m,s;
+
+    // Alarm lesen
+    GetDlgItemText(hWnd, IDD_ZEIT_AKT, hStr, 100);
+    items = sscanf(hStr, "%d:%d:%d", &h, &m, &s);
+    // eine Einfache Syntaxprüfung der Eingabe  ** aN 09.08.2023
+    switch(items)
+    {
+    case 3:
+        EZ.wHour = h % 24;
+        EZ.wMinute = m % 60;
+        EZ.wSecond = s % 60;
+        erreicht = 0;
+        break;
+    case 2:
+        EZ.wHour = h % 24;
+        EZ.wMinute = m % 60;
+        EZ.wSecond = 0;
+        erreicht = 0;
+        break;
+    case 1:
+        GetLocalTime(&EZ);
+        EZ.wSecond = 0;
+        AddTime(h);
+        erreicht = 0;
+        break;
+    default:
+        break;
+    }
+
+    GetDlgItemText(hWnd, IDD_EVENT_AKT, alarmgrund, 100);
+    dotrim(alarmgrund);
+
+    // Liste lesen
+    for(int i = 0; i < 10; i++)
+    {
+        ereignis * e = &ereignisse[i];
+
+        memset(e, 0, sizeof(ereignis));
+        GetDlgItemText(hWnd, IDD_ZEIT_01 + i * 2, hStr, 100);
+        sscanf(hStr, "%d:%d:%d", &h, &m, &s);
+        e->std = (char)(h % 24);
+        e->min = (char)(m % 60);
+        e->sec = (char)(s % 60);
+        GetDlgItemText(hWnd, IDD_EVENT_01 + i * 2, e->grund, 100);
+
+        //dotrim(e->grund);
+    }
+}
+
+//****************************************************************************
+//  SetList
+//****************************************************************************
+void SetList(HWND hWnd)
+{
+    char hStr[100];
+
+    sprintf(hStr, "%02d:%02d:%02d", EZ.wHour, EZ.wMinute, EZ.wSecond);
+    SetDlgItemText(hWnd, IDD_ZEIT_AKT, hStr);
+    SetDlgItemText(hWnd, IDD_EVENT_AKT, alarmgrund);
+    for (int i=0; i<10; i++)
+    {
+        ereignis e = ereignisse[i];
+        SetDlgItemText(hWnd, IDD_EVENT_01+2*i, e.grund);
+        sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
+        SetDlgItemText(hWnd, IDD_ZEIT_01+2*i, hStr);
+    }
+}
+
+
 
 //****************************************************************************
 //  Get Parameter
@@ -406,7 +488,7 @@ void AddTime(int diff)
 //  SetNextEvent
 //****************************************************************************
 void SetNextEvent(void)
-{
+                                                                                                                                                                                                                                                                                                                                                                                                                       {
     SYSTEMTIME st;
     int akt;
     int evt;
@@ -442,7 +524,7 @@ void SetNextEvent(void)
 }
 
 //****************************************************************************
-//  SetNextEvent
+//  AktEvent2Liste()
 //****************************************************************************
 void AktEvent2Liste(void)
 {
@@ -864,6 +946,54 @@ static HICON CreateBigTimeIcon(HWND hWnd)
     }
     gSekunde = systim.wSecond;
 
+    pt[0].x = pt[0].y = BIGIMAGESIZE / 2;
+
+    // W E C K E R - Zeiger
+    hdc = GetDC(hWnd);
+    mdc = CreateCompatibleDC(hdc);
+
+    /* Bitmap für Vordergrund erzeugen */
+    hBitmap = CreateCompatibleBitmap(hdc, BIGICONSIZE, BIGICONSIZE);
+    FillBitmap(mdc, hBitmap, 0, BIGICONSIZE, (EZ.wHour>=12)?WECKER_COLOR_PM:WECKER_COLOR_AM);
+
+    /* Bitmap für Maske erzeugen */
+    hMaskBitmap = CreateCompatibleBitmap(hdc, BIGICONSIZE, BIGICONSIZE);
+    FillBitmap(mdc, hMaskBitmap, 0, BIGICONSIZE, MASK_COLOR);
+    ReleaseDC(hWnd, hdc);
+    hRetBmp = SelectObject(mdc, hMaskBitmap);
+
+    /* Stundenzeiger zeichnen */
+    index = ((EZ.wHour % 12) * 5) + (EZ.wMinute / 15);
+    flag = index / 15;
+    index %= 15;
+    //index = (((index * 10) / 2) + 5) / 10;
+    ConvBigLinePoint(hx[index], hy[index], &pt[1], flag);
+    hPen = CreatePen(PS_SOLID, 4, (EZ.wHour>=12)?WECKER_COLOR_PM:WECKER_COLOR_AM);
+    SelectObject(mdc, hPen);
+    Polyline(mdc, pt, sizeof(pt) / sizeof(POINT));
+    DeleteObject(hPen);
+
+    /* Maske setzen */
+    FillBitmap(mdc, hMaskBitmap, BIGIMAGESIZE / 2, BIGIMAGESIZE / 2 + 1, MASK_COLOR);
+
+    /* Wecker Icon zusammen setzen */
+    SelectObject(mdc, hRetBmp);
+    DeleteDC(mdc);
+    IconList = ImageList_Create(BIGICONSIZE, BIGICONSIZE, ILC_COLOR8 | ILC_MASK, 4, 5);
+
+    ImageList_AddIcon(IconList, hBigIcon);
+
+    SelectObject(mdc, hRetBmp);
+    DeleteDC(mdc);
+
+    ImageList_Add(IconList, hBitmap, hMaskBitmap);
+    DeleteObject(hBitmap);
+    DeleteObject(hMaskBitmap);
+
+    //hIcon = ImageList_GetIcon(mIconList, 0, ILD_NORMAL);
+    //ImageList_Destroy(mIconList);
+    //ImageList_Destroy(IconList);
+
     // S T U N D E N - Z e i g e r
     hdc = GetDC(hWnd);
     mdc = CreateCompatibleDC(hdc);
@@ -879,8 +1009,6 @@ static HICON CreateBigTimeIcon(HWND hWnd)
     hRetBmp = SelectObject(mdc, hMaskBitmap);
 
 
-    pt[0].x = pt[0].y = BIGIMAGESIZE / 2;
-
     /* Stundenzeiger zeichnen */
     index = ((systim.wHour % 12) * 5) + (systim.wMinute / 15);
     flag = index / 15;
@@ -892,10 +1020,6 @@ static HICON CreateBigTimeIcon(HWND hWnd)
     SelectObject(mdc, hPen);
     Polyline(mdc, pt, sizeof(pt) / sizeof(POINT));
     DeleteObject(hPen);
-
-    /* Icon zusammen setzen */
-    IconList = ImageList_Create(BIGICONSIZE, BIGICONSIZE, ILC_COLOR8 | ILC_MASK, 4, 5);
-    ImageList_AddIcon(IconList, hBigIcon);
 
     /* GDI  */
     SelectObject(mdc, hRetBmp);
@@ -937,52 +1061,6 @@ static HICON CreateBigTimeIcon(HWND hWnd)
     DeleteObject(hBitmap);
     DeleteObject(hMaskBitmap);
 
-    // W E C K E R - Zeiger
-    hdc = GetDC(hWnd);
-    mdc = CreateCompatibleDC(hdc);
-
-    /* Bitmap für Vordergrund erzeugen */
-    hBitmap = CreateCompatibleBitmap(hdc, BIGICONSIZE, BIGICONSIZE);
-    FillBitmap(mdc, hBitmap, 0, BIGICONSIZE, (EZ.wHour>=12)?WECKER_COLOR_PM:WECKER_COLOR_AM);
-
-    /* Bitmap für Maske erzeugen */
-    hMaskBitmap = CreateCompatibleBitmap(hdc, BIGICONSIZE, BIGICONSIZE);
-    FillBitmap(mdc, hMaskBitmap, 0, BIGICONSIZE, MASK_COLOR);
-    ReleaseDC(hWnd, hdc);
-    hRetBmp = SelectObject(mdc, hMaskBitmap);
-
-    /* Stundenzeiger zeichnen */
-    index = ((EZ.wHour % 12) * 5) + (EZ.wMinute / 15);
-    flag = index / 15;
-    index %= 15;
-    //index = (((index * 10) / 2) + 5) / 10;
-    ConvBigLinePoint(hx[index], hy[index], &pt[1], flag);
-    hPen = CreatePen(PS_SOLID, 4, (EZ.wHour>=12)?WECKER_COLOR_PM:WECKER_COLOR_AM);
-    SelectObject(mdc, hPen);
-    Polyline(mdc, pt, sizeof(pt) / sizeof(POINT));
-    DeleteObject(hPen);
-
-    /* Maske setzen */
-    FillBitmap(mdc, hMaskBitmap, BIGIMAGESIZE / 2, BIGIMAGESIZE / 2 + 1, MASK_COLOR);
-
-    /* Wecker Icon zusammen setzen */
-    SelectObject(mdc, hRetBmp);
-    DeleteDC(mdc);
-    ImageList_Add(IconList, hBitmap, hMaskBitmap);
-    DeleteObject(hBitmap);
-    DeleteObject(hMaskBitmap);
-
-    // "Mergen" der Icons
-    mIconList = ImageList_Merge(IconList, 0, IconList, 1, 0, 0);  // Originalicon + Stundenzeiger
-    tIconList = ImageList_Merge(mIconList, 0, IconList, 2, 0, 0);  // + Minutenzeiger
-    ImageList_Destroy(mIconList);
-    mIconList = ImageList_Merge(tIconList, 0, IconList, 3, 0, 0);  // Wecker
-    ImageList_Destroy(tIconList);
-
-    //hIcon = ImageList_GetIcon(mIconList, 0, ILD_NORMAL);
-    //ImageList_Destroy(mIconList);
-    //ImageList_Destroy(IconList);
-
     // S E K U N D E N - Z e i g e r
     hdc = GetDC(hWnd);
     mdc = CreateCompatibleDC(hdc);
@@ -1020,6 +1098,11 @@ static HICON CreateBigTimeIcon(HWND hWnd)
     DeleteObject(hMaskBitmap);
 
     // "Mergen" der Icons
+    mIconList = ImageList_Merge(IconList, 0, IconList, 1, 0, 0);  // Originalicon + Stundenzeiger
+    tIconList = ImageList_Merge(mIconList, 0, IconList, 2, 0, 0);  // + Minutenzeiger
+    ImageList_Destroy(mIconList);
+    mIconList = ImageList_Merge(tIconList, 0, IconList, 3, 0, 0);  // Wecker
+    ImageList_Destroy(tIconList);
     tIconList = ImageList_Merge(mIconList, 0, IconList, 4, 0, 0);  // + Minutenzeiger
     ImageList_Destroy(mIconList);
 
@@ -1133,6 +1216,9 @@ void SetColors(HWND hwndCtl, HDC wParam)
     if (id == IDD_RESTZEIT)
     {
         delta = (RZ.wHour * 60 + RZ.wMinute)%abstand;
+        // abstand = (DZ.wHour * 60 + DZ.wMinute);
+        if (0 == abstand)
+            abstand = 60;  // Korrektur bei Abstand 0
 
         if (erreicht)
         {
@@ -1421,7 +1507,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     int selUhr = -1;
     int i;
 
-
     memset(hStr, 0, 100);
 
     for (i = 0;i < 3;i++)
@@ -1618,6 +1703,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     CheckMenuItem(hPopupMenu, IDM_TOPY, uhren[1].top?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(uhren[1].hSMenu, IDM_TOP, uhren[1].top?MF_CHECKED:MF_UNCHECKED);
                     SetWindowPos(uhren[1].hWnd, uhren[1].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+                    AktEvent2Liste();
                     return TRUE;
 
                 case IDM_TOPZ:
@@ -1714,6 +1800,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     CheckMenuItem(uhren[1].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(uhren[2].hSMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(hPopupMenu, IDM_NOSOUND, sound_off?MF_CHECKED:MF_UNCHECKED);
+                    DialogBox(NULL, MAKEINTRESOURCE(DLG_STATUS), hwndDlg, (DLGPROC)DlgProcStatus);
                     return TRUE;
 
                 case IDM_NEXT:
@@ -1938,6 +2025,7 @@ static LRESULT CALLBACK DlgProcEdit(HWND hwndEDlg, UINT uMsg, WPARAM wParam, LPA
                     }
 
                     GetDlgItemText(hwndEDlg, IDD_EDIT_GRUND, alarmgrund, 99);
+
                     EndDialog(hwndEDlg, TRUE);
                     return TRUE;
 
@@ -1976,32 +2064,39 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
                 case IDD_5MIN:
                     AddTime(5);
                     break;
+
                 case IDD_15MIN:
                     AddTime(15);
                     break;
+
                 case IDD_30MIN:
                     AddTime(30);
                     break;
+
                 case IDD_60MIN:
                     AddTime(60);
                     break;
+
                 case IDD_EDIT:
+                    EndDialog(hwndADlg, 0);
                     DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndADlg, (DLGPROC)DlgProcEdit);
                     AktToolTip();
                     SaveRect();
                     break;
+
                 case IDD_WEITER:
                     SetNextEvent();
                     AktToolTip();
                     SaveRect();
-                    EndDialog(hwndADlg, 0);
-                    DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndADlg, (DLGPROC)DlgProcStatus);
-                    return TRUE;
+                    break;
+
                 case IDD_STOPP:
-                   break;
+                    break;
+
             }
             AlarmDlg = 0;
             EndDialog(hwndADlg, 0);
+            DialogBox(ghInstance, MAKEINTRESOURCE(DLG_STATUS), hwndADlg, (DLGPROC)DlgProcStatus);
             return TRUE;
 
         case WM_RBUTTONDBLCLK:
@@ -2029,23 +2124,10 @@ static LRESULT CALLBACK DlgProcAlarm(HWND hwndADlg, UINT uMsg, WPARAM wParam, LP
 
 static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    char hStr[100];
-    int items;
-    int h,m,s;
-
     switch (uMsg)
     {
         case WM_INITDIALOG:
-            sprintf(hStr, "%02d:%02d:%02d", EZ.wHour, EZ.wMinute, EZ.wSecond);
-            SetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr);
-            SetDlgItemText(hwndDlg, IDD_EVENT_AKT, alarmgrund);
-            for (int i=0; i<10; i++)
-            {
-                ereignis e = ereignisse[i];
-                SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
-                sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
-                SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
-            }
+            SetList(hwndDlg);
             return TRUE;
 
         case WM_COMMAND:
@@ -2053,139 +2135,36 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             {
                 case IDOK:
                     // Alarm lesen
-                    GetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr, 100);
-                    items=sscanf(hStr, "%d:%d:%d", &h, &m, &s);
-                    // eine Einfache Syntaxprüfung der Eingabe  ** aN 09.08.2023
-                    switch(items)
-                    {
-                        case 3:
-                            EZ.wHour   = h % 24;
-                            EZ.wMinute = m % 60;
-                            EZ.wSecond = s % 60;
-                            erreicht = 0;
-                            break;
-                        case 2:
-                            EZ.wHour   = h % 24;
-                            EZ.wMinute = m % 60;
-                            EZ.wSecond = 0;
-                            erreicht = 0;
-                            break;
-                        case 1:
-                            GetLocalTime(&EZ);
-                            EZ.wSecond = 0;
-                            AddTime(h);
-                            erreicht = 0;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    GetDlgItemText(hwndDlg, IDD_EVENT_AKT, alarmgrund, 100);
-                    dotrim(alarmgrund);
-                    
-                    // Liste lesen
-                    for (int i=0; i<10; i++)
-                    {
-                        ereignis *e = &ereignisse[i];
-
-                        memset(e,0,sizeof(ereignis));
-                        GetDlgItemText(hwndDlg,IDD_ZEIT_01+i*2,hStr,100);
-                        sscanf(hStr,"%d:%d:%d",&h,&m,&s);
-                        e->std = (char)(h%24);
-                        e->min = (char)(m%60);
-                        e->sec = (char)(s%60);
-                        GetDlgItemText(hwndDlg,IDD_EVENT_01+i*2,e->grund,100);
-                        //dotrim(e->grund);
-                    }
+                    GetList(hwndDlg);
                     // und speichern
                     SaveRect();
                     EndDialog(hwndDlg, TRUE);
                     return TRUE;
 
                 case IDD_IN_LISTE:
+                    // Liste lesen
+                    GetList(hwndDlg);
                     AktEvent2Liste();
-                    for (int i=0; i<10; i++)
-                    {
-                        ereignis e = ereignisse[i];
-                        SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
-                        sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
-                        SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
-                    }
+                    SetList(hwndDlg);
                     SaveRect();
                     return TRUE;
 
-                case IDD_SORT_LISTE:
+               case IDD_SORT_LISTE:
                     // Liste lesen
-                    for (int i=0; i<10; i++)
-                    {
-                        ereignis *e = &ereignisse[i];
-
-                        memset(e,0,sizeof(ereignis));
-                        GetDlgItemText(hwndDlg,IDD_ZEIT_01+i*2,hStr,100);
-                        sscanf(hStr,"%d:%d:%d",&h,&m,&s);
-                        e->std = (char)(h%24);
-                        e->min = (char)(m%60);
-                        e->sec = (char)(s%60);
-                        GetDlgItemText(hwndDlg,IDD_EVENT_01+i*2,e->grund,100);
-                        if (strchr(hStr,'X')!=NULL)
-                        {
-                            e->std = 0;
-                            e->min = 0;
-                            e->sec = 0;
-                            e->grund[0] = 0;
-                            continue;
-                        }
-
-                        //dotrim(e->grund);
-                    }
+                    GetList(hwndDlg);
                     SortList();
-                    for (int i=0; i<10; i++)
-                    {
-                        ereignis e = ereignisse[i];
-                        SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
-                        sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
-                        SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
-                    }
+                    SetList(hwndDlg);
                     SaveRect();
                     return TRUE;
 
                 case IDD_NEXT_LISTE:
                     // Liste lesen
-                    for (int i=0; i<10; i++)
-                    {
-                        ereignis *e = &ereignisse[i];
-
-                        memset(e,0,sizeof(ereignis));
-                        GetDlgItemText(hwndDlg,IDD_ZEIT_01+i*2,hStr,100);
-                        sscanf(hStr,"%d:%d:%d",&h,&m,&s);
-                        e->std = (char)(h%24);
-                        e->min = (char)(m%60);
-                        e->sec = (char)(s%60);
-                        GetDlgItemText(hwndDlg,IDD_EVENT_01+i*2,e->grund,100);
-                        strupr(hStr);
-                        if (strchr(hStr,'X')!=NULL)
-                        {
-                            e->std = 0;
-                            e->min = 0;
-                            e->sec = 0;
-                            e->grund[0] = 0;
-                            continue;
-                        }
-                        //dotrim(e->grund);
-                    }
+                    GetList(hwndDlg);
                     SetNextEvent();
-                    sprintf(hStr, "%02d:%02d:%02d", EZ.wHour, EZ.wMinute, EZ.wSecond);
-                    SetDlgItemText(hwndDlg, IDD_ZEIT_AKT, hStr);
-                    SetDlgItemText(hwndDlg, IDD_EVENT_AKT, alarmgrund);
-                    for (int i=0; i<10; i++)
-                    {
-                        ereignis e = ereignisse[i];
-                        SetDlgItemText(hwndDlg, IDD_EVENT_01+2*i, e.grund);
-                        sprintf(hStr, "%02d:%02d:%02d", e.std, e.min, e.sec);
-                        SetDlgItemText(hwndDlg, IDD_ZEIT_01+2*i, hStr);
-                    }
+                    SetList(hwndDlg);
                     SaveRect();
                     return TRUE;
+
 
                 case IDCANCEL:
                     EndDialog(hwndDlg, FALSE);
