@@ -68,7 +68,6 @@
 // aN / 17.11.2023 / 3.0.0.61 / Statusanzeige
 // aN / 26.11.2023 / 3.0.0.62 / Statusanzeige per Menü/Tastendruck
 // aN / 23.01.2024 / 3.0.0.63 / GetList()/SetList()
-
 // aN / 27.01.2024 / 3.0.0.64 / Reihenfolge der Zeiger der gr. Uhr ändern
 
 /*
