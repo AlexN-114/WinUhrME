@@ -69,6 +69,7 @@
 // aN / 26.11.2023 / 3.0.0.62 / Statusanzeige per Menü/Tastendruck
 // aN / 23.01.2024 / 3.0.0.63 / GetList()/SetList()
 // aN / 29.01.2024 / 3.0.0.64 / Reihenfolge der Zeiger der gr. Uhr ändern
+// aN / 01.02.2024 / 3.0.0.65 / Info- und Statusfenster mit Taste quittierbar
 
 
 /*
@@ -2193,6 +2194,7 @@ static LRESULT CALLBACK DlgProcInfo(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             SetDlgItemText(hwndDlg, IDD_TEXT_INFO, outstr);
             return TRUE;
 
+        case WM_COMMAND:
         case WM_CLOSE:
         case WM_LBUTTONUP:
         case WM_LBUTTONDBLCLK:
@@ -2224,6 +2226,7 @@ static LRESULT CALLBACK DlgProcStatus(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             EndDialog(hwndDlg, 0);
             return TRUE;
 
+        case WM_COMMAND:
         case WM_CLOSE:
         case WM_LBUTTONUP:
         case WM_RBUTTONUP:
