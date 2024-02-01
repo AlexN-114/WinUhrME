@@ -1,4 +1,4 @@
-# WinUhr2
+# WinUhrME
  Analog-/Digital-Uhr in drei gleichrangigen Fenstern
  erstellt mit **Pelles C**
 
