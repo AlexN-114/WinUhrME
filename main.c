@@ -100,8 +100,8 @@
 #define IMAGESIZE           40
 #define BIGICONSIZE         96
 #define BIGIMAGESIZE        96
-#define STUNDE_COLOR_AM     RGB(  0,  0,255)
-#define STUNDE_COLOR_PM     RGB(  0,127,191)
+#define STUNDE_COLOR_AM     RGB(191,  0,127)
+#define STUNDE_COLOR_PM     RGB(127,  0,191)
 #define MINUTE_COLOR        RGB(  0,127,  0)
 #define SEKUNDE_COLOR       RGB(  0,  0,  0)
 #define WECKER_COLOR_AM     RGB(255,  0,  0)
