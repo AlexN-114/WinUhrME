@@ -68,7 +68,9 @@
 // aN / 17.11.2023 / 3.0.0.61 / Statusanzeige
 // aN / 26.11.2023 / 3.0.0.62 / Statusanzeige per Menü/Tastendruck
 // aN / 23.01.2024 / 3.0.0.63 / GetList()/SetList()
-// aN / 27.01.2024 / 3.0.0.64 / Reihenfolge der Zeiger der gr. Uhr ändern
+// aN / 29.01.2024 / 3.0.0.64 / Reihenfolge der Zeiger der gr. Uhr ändern
+// aN / 01.02.2024 / 3.0.0.65 / Info- und Statusfenster mit Taste quittierbar
+
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -98,12 +100,12 @@
 #define IMAGESIZE           40
 #define BIGICONSIZE         96
 #define BIGIMAGESIZE        96
-#define STUNDE_COLOR_AM     RGB(  0,  0,255)
-#define STUNDE_COLOR_PM     RGB(  0,127,191)
+#define STUNDE_COLOR_AM     RGB( 64,  0,224) 
+#define STUNDE_COLOR_PM     RGB(  0, 64,224)
 #define MINUTE_COLOR        RGB(  0,127,  0)
 #define SEKUNDE_COLOR       RGB(  0,  0,  0)
-#define WECKER_COLOR_AM     RGB(255,  0,  0)
-#define WECKER_COLOR_PM     RGB(191, 64,  0)
+#define WECKER_COLOR_AM     RGB(255,  0, 64)
+#define WECKER_COLOR_PM     RGB(255, 64,  0)
 #define MASK_COLOR          RGB(255,255,255)
 #define GCL_HICON           (-14)
 
@@ -967,7 +969,7 @@ static HICON CreateBigTimeIcon(HWND hWnd)
     index %= 15;
     //index = (((index * 10) / 2) + 5) / 10;
     ConvBigLinePoint(hx[index], hy[index], &pt[1], flag);
-    hPen = CreatePen(PS_SOLID, 4, (EZ.wHour>=12)?WECKER_COLOR_PM:WECKER_COLOR_AM);
+    hPen = CreatePen(PS_SOLID, 5, (EZ.wHour>=12)?WECKER_COLOR_PM:WECKER_COLOR_AM);
     SelectObject(mdc, hPen);
     Polyline(mdc, pt, sizeof(pt) / sizeof(POINT));
     DeleteObject(hPen);
@@ -1097,7 +1099,7 @@ static HICON CreateBigTimeIcon(HWND hWnd)
     DeleteObject(hMaskBitmap);
 
     // "Mergen" der Icons
-    mIconList = ImageList_Merge(IconList, 0, IconList, 1, 0, 0);  // Originalicon + Stundenzeiger
+    mIconList = ImageList_Merge( IconList, 0, IconList, 1, 0, 0);  // Originalicon + Stundenzeiger
     tIconList = ImageList_Merge(mIconList, 0, IconList, 2, 0, 0);  // + Minutenzeiger
     ImageList_Destroy(mIconList);
     mIconList = ImageList_Merge(tIconList, 0, IconList, 3, 0, 0);  // Wecker
@@ -1111,6 +1113,7 @@ static HICON CreateBigTimeIcon(HWND hWnd)
 
     return hIcon;
 }
+
 
 //****************************************************************************
 // Setzen der Farben                                                        **
@@ -2191,6 +2194,7 @@ static LRESULT CALLBACK DlgProcInfo(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             SetDlgItemText(hwndDlg, IDD_TEXT_INFO, outstr);
             return TRUE;
 
+        case WM_COMMAND:
         case WM_CLOSE:
         case WM_LBUTTONUP:
         case WM_LBUTTONDBLCLK:
@@ -2222,6 +2226,7 @@ static LRESULT CALLBACK DlgProcStatus(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             EndDialog(hwndDlg, 0);
             return TRUE;
 
+        case WM_COMMAND:
         case WM_CLOSE:
         case WM_LBUTTONUP:
         case WM_RBUTTONUP:
