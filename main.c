@@ -69,7 +69,8 @@
 // aN / 26.11.2023 / 3.0.0.62 / Statusanzeige per Menü/Tastendruck
 // aN / 23.01.2024 / 3.0.0.63 / GetList()/SetList()
 // aN / 29.01.2024 / 3.0.0.64 / Reihenfolge der Zeiger der gr. Uhr ändern
-// aN / 01.02.2024 / 3.0.0.65 / Info- und Statusfenster mit Taste quittierbar
+// aN / 01.02.2024 / 3.0.1.65 / Info- und Statusfenster mit Taste quittierbar
+// aN / 04.02.2024 / 3.0.2.66 / Hide und Top speichern
 
 
 /*
@@ -100,7 +101,7 @@
 #define IMAGESIZE           40
 #define BIGICONSIZE         96
 #define BIGIMAGESIZE        96
-#define STUNDE_COLOR_AM     RGB( 64,  0,224) 
+#define STUNDE_COLOR_AM     RGB( 64,  0,224)
 #define STUNDE_COLOR_PM     RGB(  0, 64,224)
 #define MINUTE_COLOR        RGB(  0,127,  0)
 #define SEKUNDE_COLOR       RGB(  0,  0,  0)
@@ -598,7 +599,7 @@ void AktToolTip(void)
     toolTip.uId = (UINT_PTR)uhren[0].hWnd;
     toolTip.hwnd = uhren[0].hWnd;
     uhren[0].hToolTip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | WS_BORDER | TTS_ALWAYSTIP,
-                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                       CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                                        toolTip.hwnd, NULL, ghInstance, NULL);
     SendMessage(uhren[0].hToolTip, TTM_ADDTOOL, 0, (LPARAM)(&toolTip));
 
@@ -1193,7 +1194,7 @@ HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc)
     {
         tc = TxtColr;
         bc = BkColr;
-    } 
+    }
     DeleteObject(ReUsableBrush);
     ReUsableBrush = CreateSolidBrush(bc);
     SetTextColor(hdc, tc);
@@ -1292,17 +1293,20 @@ void SaveRect(void)
         fwrite(hStr, 1, strlen(hStr), f);
 
         // Positionen speichern
-        sprintf(hStr, "%ld,%ld,%ld,%ld\n",
+        sprintf(hStr, "%ld,%ld,%ld,%ld, %d,%d\n",
         uhren[0].rWndDlg.left, uhren[0].rWndDlg.top,
-        uhren[0].rWndDlg.right, uhren[0].rWndDlg.bottom);
+        uhren[0].rWndDlg.right, uhren[0].rWndDlg.bottom,
+        uhren[0].hide, uhren[0].top);
         fwrite(hStr, 1, strlen(hStr), f);
-        sprintf(hStr, "%ld,%ld,%ld,%ld\n",
+        sprintf(hStr, "%ld,%ld,%ld,%ld, %d,%d\n",
         uhren[1].rWndDlg.left, uhren[1].rWndDlg.top,
-        uhren[1].rWndDlg.right, uhren[1].rWndDlg.bottom);
+        uhren[1].rWndDlg.right, uhren[1].rWndDlg.bottom,
+        uhren[1].hide, uhren[1].top);
         fwrite(hStr, 1, strlen(hStr), f);
-        sprintf(hStr, "%ld,%ld,%ld,%ld\n",
+        sprintf(hStr, "%ld,%ld,%ld,%ld, %d,%d\n",
         uhren[2].rWndDlg.left, uhren[2].rWndDlg.top,
-        uhren[2].rWndDlg.right, uhren[2].rWndDlg.bottom);
+        uhren[2].rWndDlg.right, uhren[2].rWndDlg.bottom,
+        uhren[2].hide, uhren[2].top);
         fwrite(hStr, 1, strlen(hStr), f);
 
         // Liste speichern
@@ -1421,9 +1425,23 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         for (int i = 0; i < 3; i++)
         {
             fgets(hStr, 50, f);
-            if (4 == sscanf(hStr, "%ld,%ld,%ld,%ld", &r.left, &r.top, &r.right, &r.bottom))
+            if (4 >= sscanf(hStr, "%ld,%ld,%ld,%ld, %d,%d",
+                            &r.left, &r.top, &r.right, &r.bottom,
+                            &uhren[i].hide, &uhren[i].top))
             {
                 uhren[i].rWndDlg = r;
+            }
+            if (uhren[i].hide)
+            {
+                CheckMenuItem(hPopupMenu, IDM_HIDEX+i, uhren[i].hide?MF_CHECKED:MF_UNCHECKED);
+                CheckMenuItem(uhren[i].hSMenu, IDM_HIDE, uhren[i].hide?MF_CHECKED:MF_UNCHECKED);
+                ShowWindow(uhren[i].hWnd, uhren[i].hide?SW_HIDE:SW_SHOW);
+           }
+            if (uhren[i].top)
+            {
+                CheckMenuItem(hPopupMenu, IDM_TOPX+i, uhren[i].top?MF_CHECKED:MF_UNCHECKED);
+                CheckMenuItem(uhren[i].hSMenu, IDM_TOP, uhren[i].top?MF_CHECKED:MF_UNCHECKED);
+                SetWindowPos(uhren[i].hWnd, uhren[i].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             }
         }
 
@@ -1478,7 +1496,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
     while (GetMessage(&Msg, NULL, 0, 0) > 0)
     {
-        if (!TranslateAccelerator(uhren[0].hWnd,hAccelTable,&Msg)) 
+        if (!TranslateAccelerator(uhren[0].hWnd,hAccelTable,&Msg))
         {
             TranslateMessage(&Msg);
             DispatchMessage(&Msg);
@@ -2216,7 +2234,7 @@ static LRESULT CALLBACK DlgProcStatus(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             SetTimer(hwndDlg, TIMER_STATUS, 5000, NULL);
             sprintf(outstr, "Zeit : %2d:%02d:%02d\r\nAlarm: %s\r\nTon  : %s",
                     EZ.wHour,EZ.wMinute,EZ.wSecond,
-                    alarmgrund, 
+                    alarmgrund,
                     (sound_off)?"aus":"an");
             SetDlgItemText(hwndDlg, IDD_STATUS, outstr);
             return TRUE;
