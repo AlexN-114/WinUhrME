@@ -71,7 +71,7 @@
 // aN / 29.01.2024 / 3.0.0.64 / Reihenfolge der Zeiger der gr. Uhr ändern
 // aN / 01.02.2024 / 3.0.1.65 / Info- und Statusfenster mit Taste quittierbar
 // aN / 04.02.2024 / 3.0.2.66 / Hide und Top speichern
-
+// aN / 05.02.2024 / 3.0.2.67 / Hide und Top speichern - repariert
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -1425,23 +1425,11 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
         for (int i = 0; i < 3; i++)
         {
             fgets(hStr, 50, f);
-            if (4 >= sscanf(hStr, "%ld,%ld,%ld,%ld, %d,%d",
+            if (4 <= sscanf(hStr, "%ld,%ld,%ld,%ld, %d,%d",
                             &r.left, &r.top, &r.right, &r.bottom,
                             &uhren[i].hide, &uhren[i].top))
             {
                 uhren[i].rWndDlg = r;
-            }
-            if (uhren[i].hide)
-            {
-                CheckMenuItem(hPopupMenu, IDM_HIDEX+i, uhren[i].hide?MF_CHECKED:MF_UNCHECKED);
-                CheckMenuItem(uhren[i].hSMenu, IDM_HIDE, uhren[i].hide?MF_CHECKED:MF_UNCHECKED);
-                ShowWindow(uhren[i].hWnd, uhren[i].hide?SW_HIDE:SW_SHOW);
-           }
-            if (uhren[i].top)
-            {
-                CheckMenuItem(hPopupMenu, IDM_TOPX+i, uhren[i].top?MF_CHECKED:MF_UNCHECKED);
-                CheckMenuItem(uhren[i].hSMenu, IDM_TOP, uhren[i].top?MF_CHECKED:MF_UNCHECKED);
-                SetWindowPos(uhren[i].hWnd, uhren[i].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             }
         }
 
@@ -1592,6 +1580,14 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
             AktToolTip();
 
+            CheckMenuItem(hPopupMenu, IDM_HIDEX+selUhr, uhren[selUhr].hide?MF_CHECKED:MF_UNCHECKED);
+            CheckMenuItem(uhren[selUhr].hSMenu, IDM_HIDE, uhren[selUhr].hide?MF_CHECKED:MF_UNCHECKED);
+            ShowWindow(hwndDlg, uhren[selUhr].hide?SW_HIDE:SW_SHOW);
+
+            CheckMenuItem(hPopupMenu, IDM_TOPX+selUhr, uhren[selUhr].top?MF_CHECKED:MF_UNCHECKED);
+            CheckMenuItem(uhren[selUhr].hSMenu, IDM_TOP, uhren[selUhr].top?MF_CHECKED:MF_UNCHECKED);
+            SetWindowPos(hwndDlg, uhren[selUhr].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
             SetColors(hwndDlg, (HDC)wParam);
             SetBkfColor(gForegroundColor, gBackgroundColor, (HDC)wParam);
 
@@ -1723,7 +1719,6 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     CheckMenuItem(hPopupMenu, IDM_TOPY, uhren[1].top?MF_CHECKED:MF_UNCHECKED);
                     CheckMenuItem(uhren[1].hSMenu, IDM_TOP, uhren[1].top?MF_CHECKED:MF_UNCHECKED);
                     SetWindowPos(uhren[1].hWnd, uhren[1].top?HWND_TOPMOST:HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                    AktEvent2Liste();
                     return TRUE;
 
                 case IDM_TOPZ:
@@ -1865,6 +1860,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 if(xx<3)
                 {
                     //TODO
+                    ShowWindow(hwndDlg, uhren[selUhr].hide?SW_HIDE:SW_SHOW);
                     Refresh(hwndDlg);
                     xx++;
                 }
