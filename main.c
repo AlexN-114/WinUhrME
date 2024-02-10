@@ -72,6 +72,7 @@
 // aN / 01.02.2024 / 3.0.1.65 / Info- und Statusfenster mit Taste quittierbar
 // aN / 04.02.2024 / 3.0.2.66 / Hide und Top speichern
 // aN / 05.02.2024 / 3.0.2.67 / Hide und Top speichern - repariert
+// aN / 09.02.2024 / 3.0.2.68 / Doppelklick aktiviert Liste
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -1940,7 +1941,7 @@ static LRESULT CALLBACK DlgProcMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             break;
 
         case WM_LBUTTONDBLCLK:
-            DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EDIT), hwndDlg, (DLGPROC)DlgProcEdit);
+            DialogBox(ghInstance, MAKEINTRESOURCE(DLG_EVENTLIST), hwndDlg, (DLGPROC)DlgProcList);
             AktToolTip();
             SaveRect();
             break;
