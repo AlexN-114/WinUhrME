@@ -80,7 +80,11 @@ FILESUBTYPE VFT2_UNKNOWN
     BLOCK "0C0704B0"
     {
       VALUE "Comments", "Eine kleine Windows-Uhr\0"
+#ifdef __PORC__
       VALUE "CompanyName", "/-\. /\/. - Software\0"
+#else
+      VALUE "CompanyName", "/-\\. /\\/. - Software\0"
+#endif
       VALUE "FileDescription", "Anzeige der Uhrzeit mehrfache Ereignisse (digital,analog,gemischt)\0"
       VALUE "FileVersion", "3.0.2.68\0"
       VALUE "InternalName", "WinUhrME\0"
