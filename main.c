@@ -73,6 +73,8 @@
 // aN / 04.02.2024 / 3.0.2.66 / Hide und Top speichern
 // aN / 05.02.2024 / 3.0.2.67 / Hide und Top speichern - repariert
 // aN / 09.02.2024 / 3.0.2.68 / Doppelklick aktiviert Liste
+// aN / 04.03.2024 / 3.0.3.84 / Ini-Name per Parameter I setzen
+
 
 /*
  * Either define WIN32_LEAN_AND_MEAN, or one or more of NOCRYPT,
@@ -84,10 +86,11 @@
 #include <windowsx.h>
 #include <commctrl.h>
 #include <winuser.h>
+#include <wingdi.h>
 #include <tchar.h>
 #include <stdio.h>
-#include <wingdi.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "main.h"
 
@@ -138,18 +141,20 @@ static LRESULT CALLBACK DlgProcList(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcInfo(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK DlgProcStatus(HWND, UINT, WPARAM, LPARAM);
 BOOL PlayResource(LPSTR lpName);
+int EventToEvent(ereignis *e1, ereignis *e2);
+int TimeToEvent(char *wt, int h, int m, int s, ereignis *e);
 void SetNextEvent(void);
 void AktOutput(HWND hwndDlg);
 void AktToolTip(void);
 void SetColors(HWND hwndCtl, HDC wParam);
 HBRUSH SetBkfColor(COLORREF TxtColr, COLORREF BkColr, HDC hdc);
+void LoadRect(void);
 void SaveRect(void);
 void CalcRestZeit(SYSTEMTIME j, SYSTEMTIME e, SYSTEMTIME *r);
 void AddTime(int diff);
 char *dotrim(char *string);
 void GetList(HWND hWnd);
 void SetList(HWND hWnd);
-
 
 /** Global variables ********************************************************/
 
@@ -309,6 +314,7 @@ void GetParams(char *szCmdline)
     int i = 0;
     char *cp;
     char hStr[200];
+    int flag = 0;
 
     if (szCmdline == NULL)
         return;
@@ -375,14 +381,47 @@ void GetParams(char *szCmdline)
                 break;
             }
 
-            case 'N':
+            case 'N':   // Set next Event
             case 'n':
                 SetNextEvent();
                 AktToolTip();
                 SaveRect();
                 break;
 
-            case '/': // Spanne
+            case 'I':   // Set ini-file name
+            case 'i':
+                flag = 0;
+                i++;
+                if (szCmdline[i] == '=')
+                    i++;
+                if (szCmdline[i] == ':')
+                    i++;
+                while (szCmdline[i] == ' ')     // Leerezeichen überlesen
+                    i++;
+                if (szCmdline[i] == '"')
+                {
+                    flag = 1;
+                    i++;
+                }
+                if (flag == 1)
+                {
+                    // Name mit Leeerzeichen und umrahmt von Hochkomma "
+                    cp = IniName;
+                    while ((szCmdline[i] != '"') && (szCmdline[i] != '\0'))
+                        *(cp++) = szCmdline[i++];
+                    *cp = 0;
+                }
+                else
+                {
+                    // Name ohne Hochkomma und Leerzeichen
+                    cp = IniName;
+                    while ((szCmdline[i] != ' ') && (szCmdline[i] != '\0'))
+                        *(cp++) = szCmdline[i++];
+                    *cp = 0;
+                }
+                break;
+
+            case '/': // Steuerzeichen überlesen
             case '-':
                 //i++;
                 break;
@@ -1275,6 +1314,64 @@ void SetColors(HWND hwndCtl, HDC wParam)
     SetBkMode(wParam, OPAQUE);
 }
 
+// Ini-Datei laden
+void LoadRect(void)
+{
+    RECT r;
+    FILE * f;
+    int wHour, wMinute, wSecond;
+    char hStr[200];
+
+    // Ini-Datei lesen und Werte setzen
+    f = fopen(IniName, "r");
+
+    if (f != NULL)
+    {
+        // Endzeit einlesen
+        fgets(hStr, 50, f);
+        if (3 == sscanf(hStr, "%d:%d:%d", &wHour, &wMinute, &wSecond))
+        {
+            EZ.wHour = wHour % 24;
+            EZ.wMinute = wMinute % 60;
+            EZ.wSecond = wSecond % 60;
+        }
+
+        // Grund für Alarm lesen
+        fgets(alarmgrund, 100, f);
+        dotrim(alarmgrund);
+
+        // Rechteck einlesen
+        for (int i = 0; i < 3; i++)
+        {
+            fgets(hStr, 50, f);
+            if (4 <= sscanf(hStr, "%ld,%ld,%ld,%ld, %d,%d",
+                            &r.left, &r.top, &r.right, &r.bottom,
+                            &uhren[i].hide, &uhren[i].top))
+            {
+                uhren[i].rWndDlg = r;
+            }
+        }
+
+        for (int i = 0; i < 10; i++)
+        {
+            int h,m,s;
+            int x;
+            ereignis *e = &ereignisse[i];
+            x = fscanf(f,"%d:%d:%d,",&h,&m,&s);
+            fgets(e->grund,100,f);
+            e->std = (char)h;
+            e->min = (char)m;
+            e->sec = (char)s;
+            dotrim(e->grund);
+        }
+
+        // Datei schließen
+        fclose(f);
+    }
+
+}
+
+
 //****************************************************************************
 // Speichern des aktuellen Fensters und Endzeit                             **
 //****************************************************************************
@@ -1379,10 +1476,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     WNDCLASSEX wcx;
     MSG Msg;
     HANDLE hAccelTable = NULL;
-    int wHour, wMinute, wSecond;
-    char hStr[200];
-    RECT r;
-    FILE * f;
 
     ghInstance = hInstance;
     // Namen für ini ermitteln
@@ -1404,54 +1497,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     // LoadLibrary(_T("riched32.dll"));  // Rich Edit v1.0
     // LoadLibrary(_T("riched20.dll"));  // Rich Edit v2.0, v3.0
 
-    // Ini-Datei lesen und Werte setzen
-    f = fopen(IniName, "r");
-
-    if (f != NULL)
-    {
-        // Endzeit einlesen
-        fgets(hStr, 50, f);
-        if (3 == sscanf(hStr, "%d:%d:%d", &wHour, &wMinute, &wSecond))
-        {
-            EZ.wHour = wHour % 24;
-            EZ.wMinute = wMinute % 60;
-            EZ.wSecond = wSecond % 60;
-        }
-
-        // Grund für Alarm lesen
-        fgets(alarmgrund, 100, f);
-        dotrim(alarmgrund);
-
-        // Rechteck einlesen
-        for (int i = 0; i < 3; i++)
-        {
-            fgets(hStr, 50, f);
-            if (4 <= sscanf(hStr, "%ld,%ld,%ld,%ld, %d,%d",
-                            &r.left, &r.top, &r.right, &r.bottom,
-                            &uhren[i].hide, &uhren[i].top))
-            {
-                uhren[i].rWndDlg = r;
-            }
-        }
-
-        for (int i = 0; i < 10; i++)
-        {
-            int h,m,s;
-            int x;
-            ereignis *e = &ereignisse[i];
-            x = fscanf(f,"%d:%d:%d,",&h,&m,&s);
-            fgets(e->grund,100,f);
-            e->std = (char)h;
-            e->min = (char)m;
-            e->sec = (char)s;
-            dotrim(e->grund);
-        }
-
-        // Datei schließen
-        fclose(f);
-    }
-
     GetParams(lpszCmdLine);
+
+    LoadRect();
 
     /* Get system dialog information */
     wcx.cbSize = sizeof(wcx);
@@ -2182,7 +2230,6 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     SaveRect();
                     return TRUE;
 
-
                 case IDCANCEL:
                     EndDialog(hwndDlg, FALSE);
                     return TRUE;
@@ -2190,7 +2237,7 @@ static LRESULT CALLBACK DlgProcList(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             break;
 
         case WM_CLOSE:
-            EndDialog(hwndDlg, 0);
+            EndDialog(hwndDlg, TRUE);
             return TRUE;
 
     }
